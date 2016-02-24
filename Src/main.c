@@ -34,7 +34,7 @@
 #include "stm32f0xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "RadioModule.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -60,6 +60,8 @@ DMA_HandleTypeDef hdma_usart1_tx;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
+//Через этот объект осуществляется доступ ко всем параметрам и функциям радиомодуля
+RadioModule g_RadioModule;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -114,6 +116,13 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
+	
+	/* Стартуем высокоточный таймер (TIM2+TIM3) для контроля временных задержек низкоуровневых функций */
+	HAL_TIM_Base_Start(&htim2);
+	HAL_TIM_Base_Start(&htim3);
+
+	/* Стартуем таймер для контроля процессов управления микросхемой CMX7262 */
+	HAL_TIM_Base_Start(&htim15);
 
   /* USER CODE END 2 */
 
@@ -195,18 +204,18 @@ void MX_SPI1_Init(void)
 
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;							// режим работы: двухпроводный full duplex
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;									// размер данных - 8 бит
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;										// синхронизация по заднему фронту
+  hspi1.Init.NSS = SPI_NSS_SOFT;														// программный CS
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;	// предделитель частоты SPI: 48МГц/32 = 1.5 МГц
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;										// старший бит - первый
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;	// CRC не вычисляется
   hspi1.Init.CRCPolynomial = 7;
   hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLED;
+  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLED;							// NSS pulse mode отключен
   HAL_SPI_Init(&hspi1);
 
 }
@@ -217,18 +226,18 @@ void MX_SPI2_Init(void)
 
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
-  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;							// режим работы: двухпроводный full duplex
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;									// размер данных - 8 бит
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
-  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;										// синхронизация по заднему фронту
+  hspi2.Init.NSS = SPI_NSS_SOFT;														// программный CS
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;	// предделитель частоты SPI: 48МГц/32 = 1.5 МГц
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;										// старший бит - первый
   hspi2.Init.TIMode = SPI_TIMODE_DISABLED;
-  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;	// CRC не вычисляется
   hspi2.Init.CRCPolynomial = 7;
   hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLED;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLED;							// NSS pulse mode отключен
   HAL_SPI_Init(&hspi2);
 
 }
@@ -241,7 +250,7 @@ void MX_TIM1_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+	htim1.Init.Prescaler = (uint16_t) ((SystemCoreClock)/1e5 - 1);	//такт таймера - в 10 мкс	
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -257,6 +266,9 @@ void MX_TIM1_Init(void)
 
 }
 
+/* Таймеры TIM2 и TIM3 реализуют высокоточный (точность - 1мкс) 32-битный таймер для оценки временных
+интервалов в реализации низкоуровневых функций (передача байта по SPI, UART и т.п.) */
+
 /* TIM2 init function */
 void MX_TIM2_Init(void)
 {
@@ -265,7 +277,7 @@ void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = (uint16_t) ((SystemCoreClock) / 1e6) - 1;		//такт таймера - в 1 мкс
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -274,7 +286,9 @@ void MX_TIM2_Init(void)
   sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
   HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig);
 
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+	//Таймер используется как master в каскадной цепочке таймеров для реализации 32-битного таймера
+	//Слейвом выступает TIM3. Формируем для него сигнал тригера по истечению периода	
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
   HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig);
 
@@ -294,6 +308,9 @@ void MX_TIM3_Init(void)
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   HAL_TIM_Base_Init(&htim3);
 
+	//Таймер используется как slave в каскадной цепочке таймеров для реализации 32-битного таймера
+	//По переполнению счетчика master-таймера (TIM2) инкрементируется счетчик данного slave-таймера
+	//Прерывание ITR1 используется как внешний тригер для инкрементирования значения счетчика	
   sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
   sSlaveConfig.InputTrigger = TIM_TS_ITR1;
   HAL_TIM_SlaveConfigSynchronization(&htim3, &sSlaveConfig);
@@ -312,7 +329,7 @@ void MX_TIM15_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim15.Instance = TIM15;
-  htim15.Init.Prescaler = 0;
+	htim15.Init.Prescaler = (uint16_t) ((SystemCoreClock)/1e5 - 1);	//такт таймера - в 10 мкс	
   htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim15.Init.Period = 65535;
   htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -423,6 +440,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(IRQ_CC1120_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : TR_SKY_Pin EN_SKY_Pin BYP_SKY_Pin */
+  GPIO_InitStruct.Pin = TR_SKY_Pin|EN_SKY_Pin|BYP_SKY_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RESET_CC1120_Pin SPI2_CS_CC1120_Pin LED1_Pin LED2_Pin 
                            LED3_Pin SPI1_CS_CMX7262_Pin */
