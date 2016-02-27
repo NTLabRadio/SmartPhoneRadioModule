@@ -15,6 +15,8 @@
 
 #include <stdint.h>
 #include <version.h>
+
+#include "cmx7262.h"
  
 enum en_RadioChanTypes
 {
@@ -47,11 +49,22 @@ enum en_RadioChanStates
 	RADIOCHAN_STATE_TRANSMIT
 };
 
+enum en_RadioModuleStates
+{
+	RADIOMODULE_STATE_IDLE,
+	RADIOMODULE_STATE_TX_WAITING,
+	RADIOMODULE_STATE_TX_RUNNING,
+	RADIOMODULE_STATE_RX_WAITING,
+	RADIOMODULE_STATE_RX_RUNNING
+};
+
 class RadioModule
 {
 public:
 	
   RadioModule();
+
+	en_RadioModuleStates RadioModuleState;
 
 	uint8_t SetRadioChanType(uint8_t chanType);
 	uint8_t GetRadioChanType();
@@ -76,7 +89,10 @@ public:
 
 	uint8_t GetRSSILevel();
 	
+	uint8_t SetRadioChanState(uint8_t radioChanState);
 	uint8_t GetRadioChanState();
+	
+	void ApplyAudioSettings();
 	
 	uint16_t GetARMSoftVer();
 
@@ -98,6 +114,34 @@ private:
 
 	uint8_t RSSILevel;
 	en_RadioChanStates RadioChanState;
+
+	struct RadioModuleSettings
+	{
+		en_RadioChanTypes radioChanType;
+		en_RadioSignalPowers	radioSignalPower;
+		en_ARMPowerModes powerMode;
+
+		uint16_t txRadioFreq;
+		uint16_t rxRadioFreq;
+
+		uint8_t audioInLevel;
+		uint8_t audioOutLevel;
+
+		uint8_t levelRSSI;
+		en_RadioChanStates radioChanState;
+	};
+
+	#define DEFAULT_AUDIO_IN_GAIN		(3)
+	#define DEFAULT_AUDIO_OUT_GAIN	(7)
+
+//CMX7262
+	#define MAX_AUDIO_OUT_GAIN_CODE						(7)
+	#define CMX7262_MAX_AUDIO_OUT_GAIN_VALUE	(59)
+	#define CMX7262_STEP_AUDIO_OUT_GAIN_VALUE	(9)
+	#define CMX7262_AUDIO_OUT_EXTRAGAIN_VALUE	(0x80)
+
+	uint16_t AudioOutGainCodeToCMX7262ValueReg(uint8_t audioOutLevel);
+	void SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX7262AudioGainOut);
 
 };
 	 

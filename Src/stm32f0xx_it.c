@@ -36,6 +36,10 @@
 #include "stm32f0xx_it.h"
 
 /* USER CODE BEGIN 0 */
+#include "globals.h"
+
+extern uint8_t g_flCMX7262_IRQ_CHECKED;
+extern uint8_t g_flCC1120_IRQ_CHECKED;
 
 /* USER CODE END 0 */
 
@@ -87,7 +91,7 @@ void EXTI0_1_IRQHandler(void)
   /* USER CODE END EXTI0_1_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
   /* USER CODE BEGIN EXTI0_1_IRQn 1 */
-
+	g_flCC1120_IRQ_CHECKED = TRUE;
   /* USER CODE END EXTI0_1_IRQn 1 */
 }
 
@@ -99,10 +103,9 @@ void EXTI4_15_IRQHandler(void)
   /* USER CODE BEGIN EXTI4_15_IRQn 0 */
 
   /* USER CODE END EXTI4_15_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_14);
   /* USER CODE BEGIN EXTI4_15_IRQn 1 */
-
+	g_flCMX7262_IRQ_CHECKED = TRUE;
   /* USER CODE END EXTI4_15_IRQn 1 */
 }
 
