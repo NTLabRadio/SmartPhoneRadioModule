@@ -133,7 +133,6 @@ typedef struct
 
 
 
-
 /* TX power = 15 */
 /* Whitening = true */
 /* Device address = 0 */

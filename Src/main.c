@@ -35,6 +35,8 @@
 
 /* USER CODE BEGIN Includes */
 #include "RadioModule.h"
+#include "CC1120.h"
+#include "AD5601.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -117,12 +119,36 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 	
+	
+	
 	/* Стартуем высокоточный таймер (TIM2+TIM3) для контроля временных задержек низкоуровневых функций */
 	HAL_TIM_Base_Start(&htim2);
 	HAL_TIM_Base_Start(&htim3);
 
 	/* Стартуем таймер для контроля процессов управления микросхемой CMX7262 */
 	HAL_TIM_Base_Start(&htim15);
+	
+	/* Стартуем CC1120 */
+	CC1120_CSN_HIGH(); // поднимаем CS для СС1120
+	CC1120_RESET; // аппаратный сброс СС1120
+	WaitTimeMCS(5e1); // задержка 50 мкс
+	CC1120_START; // запуск СС1120
+	WaitTimeMCS(5e1); // ожидание, пока стабилизируется внутренний генератор
+	
+	/* Стартуем AD5601 */
+	
+	AD5601_CSN_HIGH();// поднять CS для SPI1
+	//DAC_write (&hspi1);
+
+	
+
+	/* Пробуем запустить GPIO */
+	
+
+	/* Пробуем запустить SPI2 */
+	
+	CC1120_CheckModule(&hspi2);
+	CC1120_CheckVersion (&hspi2);
 
   /* USER CODE END 2 */
 
@@ -130,7 +156,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-  /* USER CODE END WHILE */
+ 		
+		/* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
 
@@ -231,7 +258,7 @@ void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;										// синхронизация по заднему фронту
   hspi2.Init.NSS = SPI_NSS_SOFT;														// программный CS
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;	// предделитель частоты SPI: 48МГц/32 = 1.5 МГц
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;	// предделитель частоты SPI: 48МГц/32 = 1.5 МГц
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;										// старший бит - первый
   hspi2.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;	// CRC не вычисляется
@@ -453,7 +480,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = RESET_CC1120_Pin|SPI2_CS_CC1120_Pin|LED1_Pin|LED2_Pin 
                           |LED3_Pin|SPI1_CS_CMX7262_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP; // было NOPULL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 

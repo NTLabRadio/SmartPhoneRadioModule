@@ -18,6 +18,9 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 	{
 		Cplt_SPI_TransmitReceive[INTERFACE_SPI2] = TRUE;
 	}
+	
+	LED1_ON;
+	
 }
 
 
@@ -121,6 +124,8 @@ HAL_StatusTypeDef SPI_TransmitRecieve(SPI_HandleTypeDef *hspi, uint8_t *pTxData,
 {
 	HAL_StatusTypeDef nRes = HAL_OK; // начальное состояние HAL. 
 	
+	
+	
 	#ifndef WAIT_END_OF_SPI_TRNSACTION_BY_TIM_COUNTER // если меряем таймаут прецезионным таймером
 	uint32_t cntWaitEndOfTransaction;
 	#endif
@@ -139,6 +144,11 @@ HAL_StatusTypeDef SPI_TransmitRecieve(SPI_HandleTypeDef *hspi, uint8_t *pTxData,
 		return(nRes);
 	}
 
+	if (nRes == HAL_OK) 
+	{
+		LED3_ON;
+	}	
+	
 	/* Ожидание окончания транзакции */
 	
 	//Wait end of transmission for 100 mcs
@@ -146,7 +156,7 @@ HAL_StatusTypeDef SPI_TransmitRecieve(SPI_HandleTypeDef *hspi, uint8_t *pTxData,
 	ClearHighPrecisionCounter();
 	while(ReadHighPrecisionCounter() < 1e2)
 	#else
-	cntWaitEndOfTransaction = 1e6; // или просто вычитаем до 0 
+	cntWaitEndOfTransaction = 1e6; // или просто вычитаем до 0 1e6 было
 	while(cntWaitEndOfTransaction)
 	#endif
 	{
@@ -157,9 +167,12 @@ HAL_StatusTypeDef SPI_TransmitRecieve(SPI_HandleTypeDef *hspi, uint8_t *pTxData,
 		}
 	}
 	
-	SPI_TIMEOUT_UserCallback(hspi); // если до сих пор функция не закнчилась (return не сработал)
+//	SPI_TIMEOUT_UserCallback(hspi); // если до сих пор функция не закнчилась (return не сработал)
 		
-	return HAL_TIMEOUT; // возвращаем ошибку таймаут по SPI
+	//return HAL_TIMEOUT; // возвращаем ошибку таймаут по SPI
+	
+	return(nRes);
+	
 }
 
 
