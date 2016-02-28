@@ -6,16 +6,21 @@ extern TIM_HandleTypeDef htim15;
 SPI_HandleTypeDef *hspi_CMX7262 = NULL;
 
 uint8_t nCMX7262TxNumBytes = 0;
-uint8_t pCMX7262TxData[255];
+uint8_t pCMX7262TxData[256];
 uint8_t nCMX7262RxNumBytes = 0;
-uint8_t pCMX7262RxData[255];
+uint8_t pCMX7262RxData[256];
 
+
+#define DEBUG_CMX7262_CHECKMODULE_VER3
 
 uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 {
 	hspi_CMX7262 = hspi;	
 	
-
+#ifdef DEBUG_CMX7262_CHECKMODULE_VER1
+	
+for(int8_t i=0; i<2; i++)	
+{
 	//Передаем команду General Reset
 	
 	//Опускаем CS
@@ -27,7 +32,7 @@ uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 	
 	// Wait for a 0.3 second.
 	WaitTimeMCS(3e5);
-	
+	CMX7262_CSN_HIGH();
 
 	//Передаем команду запроса FIFO output level
 	
@@ -41,10 +46,62 @@ uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 
 	//Подождем 100 мкс. Этого хватит для передачи по SPI 2 байт с тактовой выше 200 кГц
 	WaitTimeMCS(1e2);
+	CMX7262_CSN_HIGH();
 	
+	memset(pCMX7262RxData,0,2);
+}
+
 	//Должны принять 3
 	if(pCMX7262RxData[1]!=0x03)
 		return 0;
+#endif
+
+	
+	
+#ifdef DEBUG_CMX7262_CHECKMODULE_VER2
+	pCMX7262TxData[0] = 0x01;
+	// Write a general reset to the pDSP6
+	CBUS_Write8(1, pCMX7262TxData, 0, 0);
+	// Wait for a 0.3 second.
+	WaitTimeMCS(3e5);
+
+	// Read the FIFO output level. It should be 3
+	CBUS_Read8(0x4F,pCMX7262RxData,1,0);
+	// Wait for a 0.3 second.
+	WaitTimeMCS(3e5);
+	
+	//Должны принять 3
+	if(pCMX7262RxData[0]!=0x03)
+		return 0;	
+#endif
+
+
+
+#ifdef DEBUG_CMX7262_CHECKMODULE_VER3
+	uint8_t uInterface = 0;
+	uint16_t	data;
+	
+	//Передаем команду General Reset
+	data = 0;
+	CBUS_Write8(1, (uint8_t *)&data, 0, uInterface);
+	// Wait for a 0.3 second.
+	WaitTimeMCS(3e5);
+	
+	// Read the FIFO output level. It should be 3
+	CBUS_Read8(0x4F,(uint8_t*)&data,1,uInterface);
+	WaitTimeMCS(3e5);
+
+	#ifdef DEBUG_TWICE_CMX7262_CHECKMODULE
+	data = 0;
+	// Read the FIFO output level. It should be 3
+	CBUS_Read8(0x4F,(uint8_t*)&data,1,uInterface);
+	WaitTimeMCS(3e5);
+	#enduf
+
+	//Должны принять 3
+	if(data != 3)
+		return 0;
+#endif
 	
 	return 1;
 }
@@ -1049,9 +1106,6 @@ uint8_t CBUS_SendByte(uint8_t byte)
  */
 void CBUS_SetCSNLow(uint8_t uMask)
 {
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(uMask);	
-	
 	if(uMask==CBUS_INTERFACE_CMX7262)
 		CMX7262_CSN_LOW();
 }
@@ -1062,9 +1116,6 @@ void CBUS_SetCSNLow(uint8_t uMask)
  */
 void CBUS_SetCSNHigh(uint8_t uMask)
 {
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(uMask);	
-
 	if(uMask==CBUS_INTERFACE_CMX7262)	
 		CMX7262_CSN_HIGH();
 }

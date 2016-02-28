@@ -202,13 +202,18 @@ int main(void)
 
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулей
 	/* Стартуем CC1120 */
-	CC1120_CSN_HIGH(); // поднимаем CS для СС1120
 	CC1120_RESET; // аппаратный сброс СС1120
 	WaitTimeMCS(5e1); // задержка 50 мкс
 	CC1120_START; // запуск СС1120
 	WaitTimeMCS(5e1); // ожидание, пока стабилизируется внутренний генератор
 	
-	CC1120_CheckModule(&hspi1);
+	CC1120_CheckModule(&hspi2);
+	
+	CMX7262_RESET; // аппаратный сброс
+	WaitTimeMCS(5e1); // задержка 50 мкс
+	CMX7262_START; // запуск СС1120
+	WaitTimeMCS(5e1); // ожидание, пока стабилизируется внутренний генератор
+	
 	CMX7262_CheckModule(&hspi1);
 	#endif
 
