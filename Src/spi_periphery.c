@@ -77,7 +77,7 @@ HAL_StatusTypeDef SPI_TransmitRecieveByte(SPI_HandleTypeDef *hspi, uint8_t nByte
 	}
 
 	/* Ожидание окончания транзакции */
-	
+
 	//Wait end of transmission for 100 mcs
 	#ifdef WAIT_END_OF_CBUS_TRANSACTION_BY_TIM_COUNTER
 	ClearHighPrecisionCounter();

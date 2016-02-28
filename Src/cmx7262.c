@@ -11,18 +11,15 @@ uint8_t nCMX7262RxNumBytes = 0;
 uint8_t pCMX7262RxData[256];
 
 
-#define DEBUG_CMX7262_CHECKMODULE_VER3
+#define DEBUG_CMX7262_CHECKMODULE_VER1
 
 uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 {
 	hspi_CMX7262 = hspi;	
 	
 #ifdef DEBUG_CMX7262_CHECKMODULE_VER1
-	
-for(int8_t i=0; i<2; i++)	
-{
 	//Передаем команду General Reset
-	
+
 	//Опускаем CS
 	CMX7262_CSN_LOW();
 	//Передаем данные
@@ -48,36 +45,13 @@ for(int8_t i=0; i<2; i++)
 	WaitTimeMCS(1e2);
 	CMX7262_CSN_HIGH();
 	
-	memset(pCMX7262RxData,0,2);
-}
-
 	//Должны принять 3
 	if(pCMX7262RxData[1]!=0x03)
 		return 0;
 #endif
 
-	
-	
+
 #ifdef DEBUG_CMX7262_CHECKMODULE_VER2
-	pCMX7262TxData[0] = 0x01;
-	// Write a general reset to the pDSP6
-	CBUS_Write8(1, pCMX7262TxData, 0, 0);
-	// Wait for a 0.3 second.
-	WaitTimeMCS(3e5);
-
-	// Read the FIFO output level. It should be 3
-	CBUS_Read8(0x4F,pCMX7262RxData,1,0);
-	// Wait for a 0.3 second.
-	WaitTimeMCS(3e5);
-	
-	//Должны принять 3
-	if(pCMX7262RxData[0]!=0x03)
-		return 0;	
-#endif
-
-
-
-#ifdef DEBUG_CMX7262_CHECKMODULE_VER3
 	uint8_t uInterface = 0;
 	uint16_t	data;
 	
@@ -96,7 +70,7 @@ for(int8_t i=0; i<2; i++)
 	// Read the FIFO output level. It should be 3
 	CBUS_Read8(0x4F,(uint8_t*)&data,1,uInterface);
 	WaitTimeMCS(3e5);
-	#enduf
+	#endif
 
 	//Должны принять 3
 	if(data != 3)

@@ -340,7 +340,8 @@ void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;										// синхронизаци€ по заднему фронту
   hspi1.Init.NSS = SPI_NSS_SOFT;														// программный CS
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;	// предделитель частоты SPI: 48ћ√ц/128 = 375 к√ц
+//  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;	// предделитель частоты SPI: 48ћ√ц/32 = 1.5 ћ√ц
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;	// предделитель частоты SPI: 48ћ√ц/128 = 375 к√ц	
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;										// старший бит - первый
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;	// CRC не вычисл€етс€

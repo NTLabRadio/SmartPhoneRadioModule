@@ -47,8 +47,8 @@ typedef enum
 
 // Definitions for IO port mapped as chip select (output).
 
-#define CMX7262_SPI_CS_PIN              	GPIO_PIN_2                 	/* PA.02 */
-#define CMX7262_SPI_CS_GPIO_PORT        	GPIOA                      	/* GPIOA */
+#define CMX7262_SPI_CS_PIN              	SPI1_CS_CMX7262_Pin        	/* PB.07 */
+#define CMX7262_SPI_CS_GPIO_PORT        	SPI1_CS_CMX7262_GPIO_Port  	/* GPIOB */
 
 // GPIO lines for SPI interfaces
 
@@ -62,8 +62,8 @@ typedef enum
 #define CMX7262_SPI_MOSI_GPIO_PORT        GPIOA                       /* GPIOA */
 
 //IRQ from CMX7262
-#define CMX7262_IRQN_PIN              		GPIO_PIN_1                  /* PA.01 */
-#define CMX7262_IRQN_PORT        					GPIOA                       /* GPIOA */
+#define CMX7262_IRQN_PIN              		IRQ_CMX7262_Pin             /* PC.14 */
+#define CMX7262_IRQN_PORT        					IRQ_CMX7262_GPIO_Port       /* GPIOC */
 
 
 // Definitions for IO port mapped as chip select (output).
