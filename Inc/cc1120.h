@@ -447,6 +447,7 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 uint8_t CC1120_FreqWrite (SPI_HandleTypeDef *hspi, uint8_t *freq);
 uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi);
 
+void CC1120_HardwareReset(void);
 	 
 #ifdef __cplusplus
 }

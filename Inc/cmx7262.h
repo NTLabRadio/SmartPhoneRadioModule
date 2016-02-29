@@ -279,6 +279,8 @@ void CMX7262_TxFIFO(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 void CMX7262_RxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 void CMX7262_TxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 
+void CMX7262_HardwareReset(void);
+
 //-------------------------------------- CBUS DEFINES AND FUNCTIONS ----------------------------------------------
 
  /* Maximum Timeout values for flags waiting loops. These timeouts are not based

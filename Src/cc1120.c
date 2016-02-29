@@ -1115,3 +1115,19 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 	return (ReadWriteOk);
 
 }
+
+
+/**
+	* @brief	Функция аппаратного сброса CC1120
+	* @note		Функция формирует 50мкс-ный импульс на ноге аппаратного сброса микросхемы
+	*					и ожидает в течение 50мкс пока она выйдет в рабочий режим
+	*/
+void CC1120_HardwareReset()
+{
+	CC1120_RESET; 		// аппаратный сброс СС1120
+	WaitTimeMCS(5e1); // задержка 50 мкс
+	
+	CC1120_START; 		// запуск СС1120
+	WaitTimeMCS(5e1); // ожидание, пока стабилизируется внутренний генератор
+}
+

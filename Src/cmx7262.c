@@ -11,47 +11,10 @@ uint8_t nCMX7262RxNumBytes = 0;
 uint8_t pCMX7262RxData[256];
 
 
-#define DEBUG_CMX7262_CHECKMODULE_VER1
-
 uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 {
 	hspi_CMX7262 = hspi;	
 	
-#ifdef DEBUG_CMX7262_CHECKMODULE_VER1
-	//Передаем команду General Reset
-
-	//Опускаем CS
-	CMX7262_CSN_LOW();
-	//Передаем данные
-	pCMX7262TxData[0] = 0x01;
-	if(hspi_CMX7262)
-		HAL_SPI_TransmitReceive_IT(hspi_CMX7262, pCMX7262TxData, pCMX7262RxData, 1);
-	
-	// Wait for a 0.3 second.
-	WaitTimeMCS(3e5);
-	CMX7262_CSN_HIGH();
-
-	//Передаем команду запроса FIFO output level
-	
-	//Опускаем CS
-	CMX7262_CSN_LOW();
-	//Передаем данные и одновременно принимаем ответ
-	pCMX7262TxData[0] = 0x4F;
-	pCMX7262TxData[1] = CBUS_DUMMY_BYTE;
-	if(hspi_CMX7262)	
-		HAL_SPI_TransmitReceive_IT(hspi_CMX7262, pCMX7262TxData, pCMX7262RxData, 2);
-
-	//Подождем 100 мкс. Этого хватит для передачи по SPI 2 байт с тактовой выше 200 кГц
-	WaitTimeMCS(1e2);
-	CMX7262_CSN_HIGH();
-	
-	//Должны принять 3
-	if(pCMX7262RxData[1]!=0x03)
-		return 0;
-#endif
-
-
-#ifdef DEBUG_CMX7262_CHECKMODULE_VER2
 	uint8_t uInterface = 0;
 	uint16_t	data;
 	
@@ -65,18 +28,10 @@ uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 	CBUS_Read8(0x4F,(uint8_t*)&data,1,uInterface);
 	WaitTimeMCS(3e5);
 
-	#ifdef DEBUG_TWICE_CMX7262_CHECKMODULE
-	data = 0;
-	// Read the FIFO output level. It should be 3
-	CBUS_Read8(0x4F,(uint8_t*)&data,1,uInterface);
-	WaitTimeMCS(3e5);
-	#endif
-
 	//Должны принять 3
 	if(data != 3)
 		return 0;
-#endif
-	
+
 	return 1;
 }
 
@@ -173,6 +128,7 @@ uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface )
 								CBUS_Read16 (0x4D,&data,1,uInterface);  //device type; ignore
 								CBUS_Read16 (0x4D,&data,1,uInterface);  //version (in hex) e.g. version 1.0.0.0 will be 0x1000
 								sprintf(tempstr,"%X",data);             //convert to string "1000"
+
 								return 1;
 							}
 							if (data & 0x4000 && (pFI->type==CMX7161FI))
@@ -277,7 +233,7 @@ uint16_t  CMX7262_Init(CMX7262_TypeDef *pCmx7262, SPI_HandleTypeDef *hspi)
 	pCmx7262->uIRQ_ENABLE_REG = 0;					// Shadow register.
 	pCmx7262->uOutputGain = 0;
 	pCmx7262->uError = 0;										// Clear error field.
-
+	
 	// Check the flag in flash, 0 indicates programmed. Read from saved defaults if the flash
 	// has been programmed. Otherwise load the standard macro defaults. Defaults are modified
 	// and saved from the MMI.
@@ -338,8 +294,6 @@ void CMX7262_Idle(CMX7262_TypeDef *pCmx7262)
 			pCmx7262->uMode = CMX7262_IDLE_MODE;
 	}
         
-	CMX7262_AudioPA(pCmx7262,DISABLE);      //Audio PA Off
-
 	// The codec could have underflowed or set any of the IRQ flags before the Idle mode change took effect,
 	// As we confirm the mode change we read the status register and pick up any other flags such as the
 	// underflow flag (which is valid for a starved decoder). Therefore after the idle we clear the flags
@@ -378,8 +332,7 @@ void CMX7262_Decode (CMX7262_TypeDef *pCmx7262)
 {
 	// PCM samples out through audio port and TWELP in through CBUS - in relation to the CMX7262.
 	CMX7262_Routing(pCmx7262, SRC_CBUS | DEST_AUDIO);
-	//Audio PA On.
-	CMX7262_AudioPA(pCmx7262,ENABLE);
+
 	// So this routine is taking a long time to execute. About 10mS.
 	if(!CMX7262_Transcode(pCmx7262,CMX7262_VCTRL_DECODE))
 		pCmx7262->uError |= CMX7262_DECODE_ERROR;
@@ -405,9 +358,6 @@ void CMX7262_EncodeDecode_Audio (CMX7262_TypeDef *pCmx7262)
 	uData = 1;
 	CBUS_Write16(SIGNAL_CONTROL,&uData,1,pCmx7262->uInterface);
 	#endif
-	
-	//Включение звукового усилителя
-	CMX7262_AudioPA(pCmx7262,ENABLE);
 	
 	#ifdef TEST_CMX7262_NOISE_GATE_IN_ENCDEC_MODE
 	uData = (CMX7262_NOISEGATE_FRAMEDELAY_DEFAULT<<12) | CMX7262_NOISEGATE_THRESHOLD_DEFAULT;
@@ -461,9 +411,6 @@ void CMX7262_EncodeDecode_CBUS2Audio (CMX7262_TypeDef *pCmx7262)
 	CBUS_Write16(NOISE_GATE_REG,&uData,1,pCmx7262->uInterface);
 	#endif
 	
-	//Включение звукового усилителя
-	CMX7262_AudioPA(pCmx7262,ENABLE);
-	
 	// The encoder+decoder is started, there will be a delay before we are requested to service it..
 	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCDEC))
 		pCmx7262->uError |= CMX7262_ENCODE_ERROR;
@@ -489,9 +436,6 @@ void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
 	//Источник сигнала (в режиме теста звукового выхода должен игнорироваться) - CBUS,
 	//адресат сигнала - аудиовыход
 	CMX7262_Routing(pCmx7262, SRC_CBUS | DEST_AUDIO);
-	
-	//Включение звукового усилителя
-	CMX7262_AudioPA(pCmx7262,ENABLE);
 
 	#ifdef TEST_CMX7262_FADE_IN_TEST_MODE
 	//Режим Fade In: сигнал нарастает не мгновенно, амплитуда в течение некоторого времени расет с 0 до полного размаха
@@ -563,8 +507,7 @@ uint16_t CMX7262_InitHardware(CMX7262_TypeDef *pCmx7262)
 	// Setup the input and output gains.
 	CMX7262_AudioInputGain(pCmx7262);
 	CMX7262_AudioOutputGain(pCmx7262,CMX7262_OUPUT_GAIN_DEFAULT);
-	// Switch on the PA
-	//CMX7262_AudioPA(pCmx7262,ENABLE);     //moved to CMX7262_Decode
+
 	// Enable register write confirmation for VCTRL
 	uData = 0x0008;
 	CBUS_Write16(REG_DONE_SELECT,&uData,1,pCmx7262->uInterface);
@@ -614,10 +557,22 @@ uint16_t CMX7262_ConfigClocks(CMX7262_TypeDef  *pCmx7262)
 
 	data = 0x210;	// Select program block 1.2
 	CBUS_Write16 (VCTRL_REG,&data,1,pCmx7262->uInterface);
+	
+	#ifdef DEBUG_CMX7262_CHANGED_REF_CLK_DIVIDE
+	data = 42;			// Set ref clk Divide in Rx or Tx Mode
+	#else
 	data = 40;			// Set ref clk Divide in Rx or Tx Mode
+	#endif
 	CBUS_Write16 (PROG_REG,&data,1,pCmx7262->uInterface);
+	
 	if(!CBUS_WaitBitSet16 (IRQ_STATUS_REG, PRG, pCmx7262->uInterface))
+	{
+		#ifdef DEBUG_USE_LEDS	
+		LED2_ON;
+		#endif
 		return 0;		// Program fail.
+	}
+	
 	data = 208;		// Set PLL clk Divide in Rx or Tx Mode
 	CBUS_Write16 (PROG_REG,&data,1,pCmx7262->uInterface);
 	if(!CBUS_WaitBitSet16 (IRQ_STATUS_REG, PRG, pCmx7262->uInterface))
@@ -827,6 +782,21 @@ void CMX7262_IRQ (void *pData)
 	//	 pCmx7262->uError |= CMX7262_UF_ERROR;
 	//}
 }
+
+/**
+	* @brief	Функция аппаратного сброса CMX7262
+	* @note		Функция формирует 50мкс-ный импульс на ноге аппаратного сброса микросхемы
+	*					и ожидает в течение 50мкс пока она выйдет в рабочий режим
+	*/
+void CMX7262_HardwareReset()
+{
+	CMX7262_RESET; 			// аппаратный сброс
+	WaitTimeMCS(5e1); 	// задержка 50 мкс
+	
+	CMX7262_START; 			// запуск СС1120
+	WaitTimeMCS(5e1); 	// ожидание, пока стартанет
+}
+
 
 //-------------------------------------------- CBUS FUNCTIONS --------------------------------------------------------
 
