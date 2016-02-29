@@ -81,7 +81,7 @@ uint8_t g_flCC1120_IRQ_CHECKED = FALSE;
 uint8_t pDataFromCMX7262[MAX_SIZE_OF_DATA_FROM_CMX7262];
 uint16_t nLengthDataFromCMX7262 = 0;
 
-#define MAX_SIZE_OF_DATA_TO_CMX7262 (2048)
+#define MAX_SIZE_OF_DATA_TO_CMX7262 (4096)
 uint8_t pDataToCMX7262[MAX_SIZE_OF_DATA_TO_CMX7262];
 uint16_t nLengthDataToCMX7262 = 0;
 
@@ -248,10 +248,10 @@ int main(void)
 		//Обработка состояния модуля CMX7262: передача/прием/тест
 		ProcessCMX7262State();
 		
+		#ifndef TEST_CMX7262
 		//Обрабатываем тангенту
 		ProcessPTTState();
-
-		#ifndef TEST_CMX7262
+		
 		ProcessRadioState();
 		#endif
 	  
@@ -607,7 +607,7 @@ void RadioModuleInit()
 	CMX7262_Idle(&g_CMX7262Struct);	
 	
 	//Инициализация СС1120
-	CC1120_Init(&g_CC1120Struct, &hspi1);
+	CC1120_Init(&g_CC1120Struct, &hspi2);
 	
 	//После того, как все периферийные микросхемы радимодуля настроены, создаем объект
 	//для управления общими параметрами радиомодуля
@@ -731,6 +731,10 @@ void ProcessRadioState()
 						//За адресом размещаем речевые данные
 						memcpy(RadioPackForSend+1,pDataFromCMX7262,RADIOPACK_VOICEMODE_SIZE);
 						
+						#ifdef TEST_RADIO_TX_ONLY_ONES
+						memset(RadioPackForSend,0,RADIOPACK_VOICEMODE_EXTSIZE);
+						#endif
+						
 						#ifndef TEST_RADIO_IMITATE
 						//Отправляем данные на CC1120
 						CC1120_TxData(&g_CC1120Struct, RadioPackForSend, RADIOPACK_VOICEMODE_EXTSIZE);
@@ -811,7 +815,7 @@ void ProcessRadioState()
 void CMX7262_TestMode()
 {
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
-	CMX7262_EncodeDecode_Audio(&pCmx7262);	
+	CMX7262_EncodeDecode_Audio(&g_CMX7262Struct);	
 	#endif
 
 	#ifdef TEST_CMX7262_AUDIO_TESTMODE
@@ -881,7 +885,7 @@ void ProcessCMX7262State()
 		#else
 		//В тестовом режиме дополнительно проверяем, не нажата ли тангента
 		//При нажатой тангенте ничего не воспроизводим
-		if((nLengthDataToCMX7262>=CMX7262_CODEC_BUFFER_SIZE) && (HAL_GPIO_ReadPin(PTT_GPIO_Port, PTT_Pin)))
+		if((nLengthDataToCMX7262>=CMX7262_CODEC_BUFFER_SIZE) && (HAL_GPIO_ReadPin(TNG_GPIO_Port, TNG_Pin)))
 		#endif
 		{
 			CMX7262_TxFIFO(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);

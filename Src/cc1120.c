@@ -771,11 +771,20 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 		}
 
 		if (pCC1120RxData[0] != CC1120_Config[i].data)
+		{
+			#ifdef DEBUG_USE_LEDS
+			LED2_ON;
+			#endif
 			return (2);
+		}
 	}
 			
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
+	
+	#ifdef DEBUG_USE_LEDS
+	LED3_ON;
+	#endif
 
 	return (1);
 }

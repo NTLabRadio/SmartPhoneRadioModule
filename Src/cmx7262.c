@@ -623,6 +623,9 @@ void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262)
 	uint16_t uData;
 	uData = (uint16_t)pCmx7262->sInputGain;
 	// Position the gain to ANAIN2
+	#ifdef DEBUG_CMX7262_MIC_MAXGAIN
+	uData = 7;
+	#endif
 	uData = uData << 8;
 	CBUS_Write16(ANAIN_GAIN,&uData,1,pCmx7262->uInterface);
 }

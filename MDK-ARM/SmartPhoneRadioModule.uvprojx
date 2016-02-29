@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F071xB,DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP,DEBUG_USE_LEDS</Define>
+              <Define>USE_HAL_DRIVER,STM32F071xB,DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP,DEBUG_USE_LEDS,TEST_RADIO_IMITATE</Define>
               <Undefine></Undefine>
               <IncludePath>../Inc; ../Drivers/STM32F0xx_HAL_Driver/Inc; ../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy; ../Drivers/CMSIS/Include; ../Drivers/CMSIS/Device/ST/STM32F0xx/Include</IncludePath>
             </VariousControls>
