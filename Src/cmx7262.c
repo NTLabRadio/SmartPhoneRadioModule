@@ -568,7 +568,7 @@ uint16_t CMX7262_ConfigClocks(CMX7262_TypeDef  *pCmx7262)
 	if(!CBUS_WaitBitSet16 (IRQ_STATUS_REG, PRG, pCmx7262->uInterface))
 	{
 		#ifdef DEBUG_USE_LEDS	
-		LED2_ON;
+		LED2_ON();
 		#endif
 		return 0;		// Program fail.
 	}

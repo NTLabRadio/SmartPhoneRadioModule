@@ -773,7 +773,7 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 		if (pCC1120RxData[0] != CC1120_Config[i].data)
 		{
 			#ifdef DEBUG_USE_LEDS
-			LED2_ON;
+			LED2_ON();
 			#endif
 			return (2);
 		}
@@ -783,7 +783,7 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 	CC1120_CSN_HIGH();
 	
 	#ifdef DEBUG_USE_LEDS
-	LED3_ON;
+	LED3_ON();
 	#endif
 
 	return (1);
@@ -1133,10 +1133,10 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 	*/
 void CC1120_HardwareReset()
 {
-	CC1120_RESET; 		// аппаратный сброс СС1120
+	CC1120_RESET(); 		// аппаратный сброс СС1120
 	WaitTimeMCS(5e1); // задержка 50 мкс
 	
-	CC1120_START; 		// запуск СС1120
+	CC1120_START(); 		// запуск СС1120
 	WaitTimeMCS(5e1); // ожидание, пока стабилизируется внутренний генератор
 }
 
