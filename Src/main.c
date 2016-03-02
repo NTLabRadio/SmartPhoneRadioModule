@@ -173,7 +173,7 @@ int main(void)
 
 	SKY_TR_LOW();
 	SKY_EN_HIGH();
-	SKY_BYP_HIGH();
+	SKY_BYP_HIGH(); // HIGH - режим Low Power, LOW - режим High Power
 	
 	//Запускаем таймеры для работы с периферией
 	StartPeriphTimers();
@@ -189,6 +189,9 @@ int main(void)
 	CC1120_HardwareReset();
 	//Проверяем работоспособность
 	CC1120_CheckModule(&hspi2);
+	
+	// запускаем ЦАП
+	DAC_write(&hspi1);
 	
 	//Аппаратный сброс CMX7262
 	CMX7262_HardwareReset();
