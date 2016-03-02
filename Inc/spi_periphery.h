@@ -95,6 +95,15 @@ typedef enum
 
 #define CC1120_RESET_HIGH()		HAL_GPIO_WritePin(RESET_CC1120_GPIO_Port, RESET_CC1120_Pin, GPIO_PIN_SET);
 
+#define	SKY_TR_HIGH()					HAL_GPIO_WritePin(TR_SKY_GPIO_Port, TR_SKY_Pin, GPIO_PIN_SET);
+#define	SKY_TR_LOW()					HAL_GPIO_WritePin(TR_SKY_GPIO_Port, TR_SKY_Pin, GPIO_PIN_RESET);
+
+#define	SKY_EN_HIGH()					HAL_GPIO_WritePin(EN_SKY_GPIO_Port, EN_SKY_Pin, GPIO_PIN_SET);
+#define	SKY_EN_LOW()					HAL_GPIO_WritePin(EN_SKY_GPIO_Port, EN_SKY_Pin, GPIO_PIN_RESET);
+
+#define	SKY_BYP_HIGH()				HAL_GPIO_WritePin(BYP_SKY_GPIO_Port, BYP_SKY_Pin, GPIO_PIN_SET);
+#define	SKY_BYP_LOW()					HAL_GPIO_WritePin(BYP_SKY_GPIO_Port, BYP_SKY_Pin, GPIO_PIN_RESET);
+
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi);
 
 void ResetCpltState_SPI_TransmitReceive(SPI_HandleTypeDef *hspi);

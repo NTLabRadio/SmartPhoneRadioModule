@@ -85,25 +85,9 @@ uint16_t nLengthDataFromCMX7262 = 0;
 uint8_t pDataToCMX7262[MAX_SIZE_OF_DATA_TO_CMX7262];
 uint16_t nLengthDataToCMX7262 = 0;
 
-//Длительность звуковых данных одного вокодерного буфера, мс
-#define CMX7262_BUFFER_DURATION_MS (60)
 
-//Число буферов данных вокодера, накапливаемых радимодулем прежде чем инициализировать передачу
-#define NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX	(6)		//60 мс x 6 = 360 мс
-
-//Число буферов данных вокодера в одном радиопакете
-#define NUM_CMX7262_BUFFERS_IN_RADIOPACK	(3)				//60 мс x 3 = 180 мс
-
-//Размер радиопакета в режиме речевого обмена, только речевые данные
-#define RADIOPACK_VOICEMODE_SIZE 	(NUM_CMX7262_BUFFERS_IN_RADIOPACK*CMX7262_CODEC_BUFFER_SIZE)
-
-//Размер расширенного радиопакета в режиме речевого обмена, со служебными данными в дополнении к речевым
-#define RADIOPACK_VOICEMODE_EXTSIZE	(90)
-
-#define MAX_RADIOPACK_SIZE	(128)
-
-//Данные расширенного пакета для передачи
-uint8_t RadioPackForSend[RADIOPACK_VOICEMODE_EXTSIZE];
+//Данные радиопакета для передачи
+uint8_t RadioPackForSend[MAX_RADIOPACK_SIZE];
 
 //Данные принятого радиопакета
 uint8_t RadioPackRcvd[MAX_RADIOPACK_SIZE];
@@ -187,6 +171,10 @@ int main(void)
 	//Выключаем светодиоды
 	LEDS_OFF;
 
+	SKY_TR_LOW();
+	SKY_EN_HIGH();
+	SKY_BYP_HIGH();
+	
 	//Запускаем таймеры для работы с периферией
 	StartPeriphTimers();
 
@@ -475,15 +463,7 @@ void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart1.Init.OneBitSampling = UART_ONEBIT_SAMPLING_DISABLED ;
-  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart1.Init = DefaultUARTParams;
   HAL_UART_Init(&huart1);
 
 }
@@ -641,6 +621,8 @@ void ProcessPTTState()
 			
 			nLengthDataFromCMX7262 = 0;
 			nLengthDataToCMX7262 = 0;
+			
+			SKY_TR_HIGH();
 		}
 	}
 	else
@@ -662,6 +644,8 @@ void ProcessPTTState()
 			nLengthDataToCMX7262 = 0;
 			#endif
 			nLengthDataFromCMX7262 = 0;
+			
+			SKY_TR_LOW();
 		}
 	}
 }
@@ -731,13 +715,9 @@ void ProcessRadioState()
 						//За адресом размещаем речевые данные
 						memcpy(RadioPackForSend+1,pDataFromCMX7262,RADIOPACK_VOICEMODE_SIZE);
 						
-						#ifdef TEST_RADIO_TX_ONLY_ONES
-						memset(RadioPackForSend,0,RADIOPACK_VOICEMODE_EXTSIZE);
-						#endif
-						
 						#ifndef TEST_RADIO_IMITATE
 						//Отправляем данные на CC1120
-						CC1120_TxData(&g_CC1120Struct, RadioPackForSend, RADIOPACK_VOICEMODE_EXTSIZE);
+						CC1120_TxData(&g_CC1120Struct, RadioPackForSend, RADIOPACK_MODE4800_EXTSIZE);
 						#else
 						RadioImitator_TxData(RadioPackForSend+1, RADIOPACK_VOICEMODE_SIZE);
 						#endif

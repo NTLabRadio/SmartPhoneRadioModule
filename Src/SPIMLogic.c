@@ -168,14 +168,18 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	
 	
 	//„итаем код рабочей частоты передачи
-	uint16_t* pTXFreqCode = (uint16_t*)(SPIMCmdRcvd->Body+2);
-	uint16_t TXFreqCode = *pTXFreqCode;
+
+	uint16_t TXFreqCode;
+	memcpy(&TXFreqCode,SPIMCmdRcvd->Body+2,sizeof(TXFreqCode));
+	
 	//ѕримен€ем код рабочей частоты передачи
 	pobjRadioModule->SetTxFreqChan(TXFreqCode);
 	
 	//„итаем код рабочей частоты приема
-	uint16_t* pRXFreqCode = (uint16_t*)(SPIMCmdRcvd->Body+4);
-	uint16_t RXFreqCode = *pRXFreqCode;
+
+	uint16_t RXFreqCode;
+	memcpy(&RXFreqCode,SPIMCmdRcvd->Body+4,sizeof(RXFreqCode));	
+	
 	//ѕримен€ем код рабочей частоты приемачи
 	pobjRadioModule->SetRxFreqChan(RXFreqCode);
 }
