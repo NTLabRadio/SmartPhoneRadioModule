@@ -604,8 +604,13 @@ void CMX7262_AnalogBlocks(CMX7262_TypeDef *pCmx7262)
 
 	// Power up the appropriate analog blocks - Start
 	// DAC Pwr, OP Bias, SPKR2, Enable DrvPwr 1&2
+	#ifndef CMX7262_SPKR2_OUT
 	uData = 0x086A;
+	#else
+	uData = 0x088A;
+	#endif		
 	CBUS_Write16(ANAOUT_CONFIG,&uData,1,pCmx7262->uInterface);
+	
 	// Single ended uses ANAIN2, differential uses ANAIN1.
 	// J24 Pins 1 to 2, 3 to 4 and 7 to 8, 9 to 10 need shorting.
 	//uData = 0x0802; 	// ANAIN1 - Differential input
