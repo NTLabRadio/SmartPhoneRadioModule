@@ -166,9 +166,8 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	pobjRadioModule->SetAudioOutLevel(audioOutLevel);	
 	pobjRadioModule->SetAudioInLevel(audioInLevel);
 	
-	
-	//Читаем код рабочей частоты передачи
 
+	//Читаем код рабочей частоты передачи
 	uint16_t TXFreqCode;
 	memcpy(&TXFreqCode,SPIMCmdRcvd->Body+2,sizeof(TXFreqCode));
 	
@@ -176,7 +175,6 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	pobjRadioModule->SetTxFreqChan(TXFreqCode);
 	
 	//Читаем код рабочей частоты приема
-
 	uint16_t RXFreqCode;
 	memcpy(&RXFreqCode,SPIMCmdRcvd->Body+4,sizeof(RXFreqCode));	
 	
