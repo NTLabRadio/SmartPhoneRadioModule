@@ -603,8 +603,8 @@ void CMX7262_AnalogBlocks(CMX7262_TypeDef *pCmx7262)
 	uint16_t uData;
 
 	// Power up the appropriate analog blocks - Start
-	// DAC Pwr, OP Bias, SPKR2, Enable DrvPwr 1&2
-	#ifndef CMX7262_SPKR2_OUT
+	// DAC Pwr, OP Bias, SPKR1/SPKR2, Enable DrvPwr 1&2
+	#ifndef CMX7262_SPKR1_OUT
 	uData = 0x086A;
 	#else
 	uData = 0x088A;
