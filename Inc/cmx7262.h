@@ -19,8 +19,17 @@
 #endif
 
 #include <math.h>       /* для floor() */
+
+#ifdef STM32F103xE
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal_spi.h"
+#endif
+
+#ifdef STM32F071xB
 #include "stm32f0xx_hal.h"
 #include "stm32f0xx_hal_spi.h"
+#endif	
+	 
 #include "globals.h"
 #include "spi_periphery.h"
 #include "timers.h"
@@ -29,6 +38,20 @@
 #define CBUS_INTERFACE_CMX7262 (0)
  
 
+#ifdef STM32F103xE	 
+//Memory Map
+//                   Start            Space     Current length
+//      ARM Code     0x08000000	      64kbytes  
+#define START_7262   0x08010000	    //112kbytes ~91kbytes
+//      Settings     0x0803f800        2kbytes   Set to a page size to allow an erase. Currently 32 bytes are used, but will
+// grow if we decide to add more settings to flash	 (см. ADDR_FLASH_PAGE)
+
+	 // Address for final page in flash into which the defaults are saved.
+#define ADDR_FLASH_PAGE     ((uint32_t)0x0803F800)
+#endif
+
+
+#ifdef STM32F071xB
 //Memory Map
 //                   Start            Space     Current length
 //      ARM Code     0x08000000	      32kbytes  
@@ -38,6 +61,9 @@
 	 
 // Address for final page in flash into which the defaults are saved.
 #define ADDR_FLASH_PAGE     ((uint32_t)0x0801F000)
+#endif
+
+
 
 
 //Частота дискретизации входного/выходного аудиосигнала, Гц
@@ -141,6 +167,7 @@
 // Size of buffer to hold one packet of encoded samples (3 frame, hard decision, FEC).
 #define	CMX7262_CODEC_BUFFER_SIZE	27
 
+
 // Clock setup
 #define	FS_DIV										78 				// Setup a 8kHz sample rate for the audio converters
 
@@ -177,6 +204,7 @@ typedef enum {
 #define	DEST_AUDIO	0x2
 #define	SRC_CBUS		(0x1)<<4
 #define	SRC_AUDIO		(0x2)<<4
+
 
 
 typedef struct {

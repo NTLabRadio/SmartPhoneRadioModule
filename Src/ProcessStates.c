@@ -29,16 +29,16 @@ uint16_t cntCMX7262TxAudioBuf = 0;
 
 
 
-void RadioModuleInit(SPI_HandleTypeDef hspiCMX7262, SPI_HandleTypeDef hspiCC1120)
+void RadioModuleInit(SPI_HandleTypeDef *hspiCMX7262, SPI_HandleTypeDef *hspiCC1120)
 {
 	//Инициализация CMX7262: загрузка образа в память, начальная настройка
-	CMX7262_Init(&g_CMX7262Struct, &hspiCMX7262);
+	CMX7262_Init(&g_CMX7262Struct, hspiCMX7262);
 
 	//Перевод CMX7262 в режим Idle
 	CMX7262_Idle(&g_CMX7262Struct);	
 	
 	//Инициализация СС1120
-	CC1120_Init(&g_CC1120Struct, &hspiCC1120);
+	CC1120_Init(&g_CC1120Struct, hspiCC1120);
 	
 	//После того, как все периферийные микросхемы радимодуля настроены, создаем объект
 	//для управления общими параметрами радиомодуля
@@ -60,7 +60,7 @@ void ProcessPTTState()
 	{
 		//Проверяем состояние радиоканала
 		//Если до сих пор не находимся в передаче
-		if(pobjRadioModule->GetRadioChanState() != RADIOCHAN_STATE_TRANSMIT)
+		if( !pobjRadioModule->isTxMode() )
 		{
 			//Переходим в передачу
 			pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_TRANSMIT);
@@ -73,15 +73,16 @@ void ProcessPTTState()
 			nLengthDataFromCMX7262 = 0;
 			nLengthDataToCMX7262 = 0;
 			
+			#ifndef SMART_PROTOTYPE
 			SKY_TR_HIGH();
+			#endif
 		}
 	}
 	else
 	{
 		//Проверяем состояние радиоканала
 		//Если до сих пор не находимся в приеме
-		if( (pobjRadioModule->GetRadioChanState() != RADIOCHAN_STATE_WAIT_RECEIVE) &&
-				(pobjRadioModule->GetRadioChanState() != RADIOCHAN_STATE_RECEIVE) )
+		if( !pobjRadioModule->isRxMode() )
 		{
 			//Переходим в прием
 			pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_WAIT_RECEIVE);
@@ -96,7 +97,9 @@ void ProcessPTTState()
 			#endif
 			nLengthDataFromCMX7262 = 0;
 			
+			#ifndef SMART_PROTOTYPE
 			SKY_TR_LOW();
+			#endif
 		}
 	}
 }

@@ -93,6 +93,9 @@ public:
 	uint8_t SetRadioChanState(uint8_t radioChanState);
 	uint8_t GetRadioChanState();
 	
+	uint8_t isTxMode();
+	uint8_t isRxMode();
+	
 	void ApplyAudioSettings();
 	void ApplyRadioFreq();
 	

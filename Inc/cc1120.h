@@ -18,12 +18,19 @@
  extern "C" {
 #endif
 
+#ifdef STM32F071xB
 #include "stm32f0xx_hal.h"
 #include "stm32f0xx_hal_spi.h"
+#endif
+	 
+#ifdef STM32F103xE	 
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal_spi.h"	 
+#endif
+	 
 #include "globals.h"
 #include "spi_periphery.h"
 #include "timers.h"
-#include "ad5601.h"	 
 
 
 typedef enum

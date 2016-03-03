@@ -154,6 +154,17 @@ uint8_t RadioModule::SetRadioChanState(uint8_t radioChanState)
 	return(0);
 }
 
+uint8_t RadioModule::isTxMode()
+{
+	return(GetRadioChanState() == RADIOCHAN_STATE_TRANSMIT);	
+}
+
+uint8_t RadioModule::isRxMode()
+{
+	return((GetRadioChanState() == RADIOCHAN_STATE_WAIT_RECEIVE) ||
+				 (GetRadioChanState() == RADIOCHAN_STATE_RECEIVE) );
+}
+
 
 uint16_t RadioModule::GetARMSoftVer()
 {

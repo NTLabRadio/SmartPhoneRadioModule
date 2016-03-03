@@ -19,6 +19,6 @@ uint8_t DAC_write (SPI_HandleTypeDef *hspi)
 	}
 	// CS поднять
 	AD5601_CSN_HIGH();
-return 1;	
-	
+
+	return 1;		
 }

@@ -135,9 +135,11 @@ int main(void)
 	//Выключаем светодиоды
 	LEDS_OFF();
 
+	#ifndef SMART_PROTOTYPE
 	SKY_TR_LOW();
 	SKY_EN_HIGH();
 	SKY_BYP_HIGH(); // HIGH - режим Low Power, LOW - режим High Power
+	#endif
 	
 	//Запускаем таймеры для работы с периферией
 	StartPeriphTimers();
@@ -165,7 +167,7 @@ int main(void)
 
 
 	//Делаем инициализацию радиомодуля для возможности управления его режимами и параметрами
-	RadioModuleInit(hspi1,hspi2);
+	RadioModuleInit(&hspi1,&hspi2);
 
 	#ifdef TEST_CMX7262
 	CMX7262_TestMode();

@@ -1,8 +1,5 @@
 #include "cmx7262.h"
 
-//TODO Этот handle (htim5) и интерфейсы, использующие его, стоит вынести в соответствующий модуль: timers.c
-extern TIM_HandleTypeDef htim15;
-
 SPI_HandleTypeDef *hspi_CMX7262 = NULL;
 
 uint8_t nCMX7262TxNumBytes = 0;
@@ -16,22 +13,27 @@ uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 	hspi_CMX7262 = hspi;	
 	
 	uint8_t uInterface = 0;
-	uint16_t	data;
+	uint16_t data;
 	
 	//Передаем команду General Reset
 	data = 0;
 	CBUS_Write8(1, (uint8_t *)&data, 0, uInterface);
+	
 	// Wait for a 0.3 second.
 	WaitTimeMCS(3e5);
 	
-	// Read the FIFO output level. It should be 3
-	CBUS_Read8(0x4F,(uint8_t*)&data,1,uInterface);
-	WaitTimeMCS(3e5);
 
+	//Передаем команду запроса FIFO output level
+	CBUS_Read8(0x4F,(uint8_t*)&data,1,uInterface);
+
+	//Подождем 100 мкс. Этого хватит для передачи по SPI 2 байт с тактовой выше 200 кГц
+	WaitTimeMCS(1e2);
+	
+	
 	//Должны принять 3
 	if(data != 3)
 		return 0;
-
+	
 	return 1;
 }
 
@@ -128,7 +130,6 @@ uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface )
 								CBUS_Read16 (0x4D,&data,1,uInterface);  //device type; ignore
 								CBUS_Read16 (0x4D,&data,1,uInterface);  //version (in hex) e.g. version 1.0.0.0 will be 0x1000
 								sprintf(tempstr,"%X",data);             //convert to string "1000"
-
 								return 1;
 							}
 							if (data & 0x4000 && (pFI->type==CMX7161FI))
@@ -233,7 +234,7 @@ uint16_t  CMX7262_Init(CMX7262_TypeDef *pCmx7262, SPI_HandleTypeDef *hspi)
 	pCmx7262->uIRQ_ENABLE_REG = 0;					// Shadow register.
 	pCmx7262->uOutputGain = 0;
 	pCmx7262->uError = 0;										// Clear error field.
-	
+
 	// Check the flag in flash, 0 indicates programmed. Read from saved defaults if the flash
 	// has been programmed. Otherwise load the standard macro defaults. Defaults are modified
 	// and saved from the MMI.
@@ -294,6 +295,10 @@ void CMX7262_Idle(CMX7262_TypeDef *pCmx7262)
 			pCmx7262->uMode = CMX7262_IDLE_MODE;
 	}
         
+	#ifdef SMART_PROTOTYPE
+	CMX7262_AudioPA(pCmx7262,DISABLE);      //Audio PA Off
+	#endif
+
 	// The codec could have underflowed or set any of the IRQ flags before the Idle mode change took effect,
 	// As we confirm the mode change we read the status register and pick up any other flags such as the
 	// underflow flag (which is valid for a starved decoder). Therefore after the idle we clear the flags
@@ -332,7 +337,10 @@ void CMX7262_Decode (CMX7262_TypeDef *pCmx7262)
 {
 	// PCM samples out through audio port and TWELP in through CBUS - in relation to the CMX7262.
 	CMX7262_Routing(pCmx7262, SRC_CBUS | DEST_AUDIO);
-
+	#ifdef SMART_PROTOTYPE
+	//Audio PA On.
+	CMX7262_AudioPA(pCmx7262,ENABLE);
+	#endif
 	// So this routine is taking a long time to execute. About 10mS.
 	if(!CMX7262_Transcode(pCmx7262,CMX7262_VCTRL_DECODE))
 		pCmx7262->uError |= CMX7262_DECODE_ERROR;
@@ -357,6 +365,11 @@ void CMX7262_EncodeDecode_Audio (CMX7262_TypeDef *pCmx7262)
 	//Fade In: the audio signal will ramp up from zero to the selected full-scale amplitude
 	uData = 1;
 	CBUS_Write16(SIGNAL_CONTROL,&uData,1,pCmx7262->uInterface);
+	#endif
+	
+	#ifdef SMART_PROTOTYPE
+	//Включение звукового усилителя
+	CMX7262_AudioPA(pCmx7262,ENABLE);
 	#endif
 	
 	#ifdef TEST_CMX7262_NOISE_GATE_IN_ENCDEC_MODE
@@ -411,6 +424,11 @@ void CMX7262_EncodeDecode_CBUS2Audio (CMX7262_TypeDef *pCmx7262)
 	CBUS_Write16(NOISE_GATE_REG,&uData,1,pCmx7262->uInterface);
 	#endif
 	
+	#ifdef SMART_PROTOTYPE
+	//Включение звукового усилителя
+	CMX7262_AudioPA(pCmx7262,ENABLE);
+	#endif
+	
 	// The encoder+decoder is started, there will be a delay before we are requested to service it..
 	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCDEC))
 		pCmx7262->uError |= CMX7262_ENCODE_ERROR;
@@ -436,6 +454,11 @@ void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
 	//Источник сигнала (в режиме теста звукового выхода должен игнорироваться) - CBUS,
 	//адресат сигнала - аудиовыход
 	CMX7262_Routing(pCmx7262, SRC_CBUS | DEST_AUDIO);
+	
+	#ifdef SMART_PROTOTYPE
+	//Включение звукового усилителя
+	CMX7262_AudioPA(pCmx7262,ENABLE);
+	#endif
 
 	#ifdef TEST_CMX7262_FADE_IN_TEST_MODE
 	//Режим Fade In: сигнал нарастает не мгновенно, амплитуда в течение некоторого времени расет с 0 до полного размаха
@@ -474,8 +497,8 @@ uint16_t CMX7262_Transcode(CMX7262_TypeDef *pCmx7262, uint16_t uMode)
 	CBUS_Write16(VCTRL_REG,(uint16_t *)&uMode,1,pCmx7262->uInterface);
 	
 	// Wait until we have confirmation of the mode being set.
-	__HAL_TIM_SetCounter(&htim15,0);
-	while (__HAL_TIM_GetCounter(&htim15) < CMX7262_TRANSCODE_TIMEOUT)
+	ClearCMX7262TimerCounter();
+	while (CMX7262TimerCounter() < CMX7262_TRANSCODE_TIMEOUT)
 	{
 		CBUS_Read16 (IRQ_STATUS_REG,&uData,1,pCmx7262->uInterface);
 		pCmx7262->uIRQ_STATUS_REG |= uData;
@@ -507,7 +530,7 @@ uint16_t CMX7262_InitHardware(CMX7262_TypeDef *pCmx7262)
 	// Setup the input and output gains.
 	CMX7262_AudioInputGain(pCmx7262);
 	CMX7262_AudioOutputGain(pCmx7262,CMX7262_OUPUT_GAIN_DEFAULT);
-
+	
 	// Enable register write confirmation for VCTRL
 	uData = 0x0008;
 	CBUS_Write16(REG_DONE_SELECT,&uData,1,pCmx7262->uInterface);
@@ -557,14 +580,13 @@ uint16_t CMX7262_ConfigClocks(CMX7262_TypeDef  *pCmx7262)
 
 	data = 0x210;	// Select program block 1.2
 	CBUS_Write16 (VCTRL_REG,&data,1,pCmx7262->uInterface);
-	
-	#ifdef DEBUG_CMX7262_CHANGED_REF_CLK_DIVIDE
+
+	#ifdef CMX7262_CLOCK_20MHZ
 	data = 42;			// Set ref clk Divide in Rx or Tx Mode
 	#else
 	data = 40;			// Set ref clk Divide in Rx or Tx Mode
 	#endif
 	CBUS_Write16 (PROG_REG,&data,1,pCmx7262->uInterface);
-	
 	if(!CBUS_WaitBitSet16 (IRQ_STATUS_REG, PRG, pCmx7262->uInterface))
 	{
 		#ifdef DEBUG_USE_LEDS	
@@ -608,9 +630,8 @@ void CMX7262_AnalogBlocks(CMX7262_TypeDef *pCmx7262)
 	uData = 0x086A;
 	#else
 	uData = 0x088A;
-	#endif		
+	#endif	
 	CBUS_Write16(ANAOUT_CONFIG,&uData,1,pCmx7262->uInterface);
-	
 	// Single ended uses ANAIN2, differential uses ANAIN1.
 	// J24 Pins 1 to 2, 3 to 4 and 7 to 8, 9 to 10 need shorting.
 	//uData = 0x0802; 	// ANAIN1 - Differential input
@@ -627,10 +648,10 @@ void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262)
 {
 	uint16_t uData;
 	uData = (uint16_t)pCmx7262->sInputGain;
-	// Position the gain to ANAIN2
 	#ifdef DEBUG_CMX7262_MIC_MAXGAIN
 	uData = 7;
 	#endif
+	// Position the gain to ANAIN2
 	uData = uData << 8;
 	CBUS_Write16(ANAIN_GAIN,&uData,1,pCmx7262->uInterface);
 }
@@ -791,6 +812,8 @@ void CMX7262_IRQ (void *pData)
 	//}
 }
 
+
+#ifndef SMART_PROTOTYPE
 /**
 	* @brief	Функция аппаратного сброса CMX7262
 	* @note		Функция формирует 50мкс-ный импульс на ноге аппаратного сброса микросхемы
@@ -804,7 +827,7 @@ void CMX7262_HardwareReset()
 	CMX7262_START; 			// запуск СС1120
 	WaitTimeMCS(5e1); 	// ожидание, пока стартанет
 }
-
+#endif
 
 //-------------------------------------------- CBUS FUNCTIONS --------------------------------------------------------
 
@@ -905,10 +928,6 @@ void CBUS_Read16(uint8_t uAddress, uint16_t *data_ptr, uint16_t uAccesses, uint8
 // Supports byte wide CBUS streaming and efficient packing of bytes.
 void CBUS_Write8(uint8_t uAddress, uint8_t *data_ptr, uint16_t uAccesses, uint8_t uInterface)
 {
-	#ifdef DEBUG_CALCULATE_CBUS_PROCESS_TIME
-	int32_t cntPrecTimer = ReadCMX7262TimerCounter();
-	#endif
-
 	uint16_t uAccessCount;
 
 	// An IRQ routine includes a CBUS access to clear the status register. Therefore
@@ -939,23 +958,12 @@ void CBUS_Write8(uint8_t uAddress, uint8_t *data_ptr, uint16_t uAccesses, uint8_
 	#ifdef DISABLE_IRQ_FOR_CBUS_OPERATIONS
 	__enable_irq();
 	#endif
-	
-	#ifdef DEBUG_CALCULATE_CBUS_PROCESS_TIME
-	cntPrecTimer = ReadCMX7262TimerCounter() - cntPrecTimer;
-	
-	printf("Time of CBUS_Write8() exec: %d mcs \r\n", cntPrecTimer*10);
-	#endif	
-
 }
 
 
 // Supports byte wide CBUS streaming and efficient packing of bytes.
 void CBUS_Read8(uint8_t uAddress, uint8_t *data_ptr, uint16_t uAccesses, uint8_t uInterface)
 {
-	#ifdef DEBUG_CALCULATE_CBUS_PROCESS_TIME
-	int32_t cntPrecTimer = ReadCMX7262TimerCounter();
-	#endif	
-	
 	uint16_t uAccessCount;
 
 	*data_ptr=0;
@@ -988,13 +996,7 @@ void CBUS_Read8(uint8_t uAddress, uint8_t *data_ptr, uint16_t uAccesses, uint8_t
 
 	#ifdef DISABLE_IRQ_FOR_CBUS_OPERATIONS
 	__enable_irq();
-	#endif
-	
-	#ifdef DEBUG_CALCULATE_CBUS_PROCESS_TIME
-	cntPrecTimer = ReadCMX7262TimerCounter() - cntPrecTimer;
-	
-	printf("Time of CBUS_Read8() exec: %d mcs\r\n", cntPrecTimer*10);
-	#endif		
+	#endif	
 }
 
 

@@ -68,11 +68,15 @@
 #define SPI1_CS_CMX7262_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
+
 #define CC1120_START()  HAL_GPIO_WritePin(RESET_CC1120_GPIO_Port, RESET_CC1120_Pin, GPIO_PIN_SET)
 #define CC1120_RESET()	HAL_GPIO_WritePin(RESET_CC1120_GPIO_Port, RESET_CC1120_Pin, GPIO_PIN_RESET)
 
 #define CMX7262_START		HAL_GPIO_WritePin(RESET_CMX7262_GPIO_Port, RESET_CMX7262_Pin, GPIO_PIN_SET)
 #define CMX7262_RESET		HAL_GPIO_WritePin(RESET_CMX7262_GPIO_Port, RESET_CMX7262_Pin, GPIO_PIN_RESET)
+
+
+//Светодиоды
 
 #define LEDS_OFF()			{LED1_OFF(); LED2_OFF(); LED3_OFF();}
 
@@ -85,6 +89,21 @@
 
 #define LED3_ON()				HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET)
 #define LED3_OFF()			HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET)
+
+
+//SKY
+
+#define	SKY_TR_HIGH()					HAL_GPIO_WritePin(TR_SKY_GPIO_Port, TR_SKY_Pin, GPIO_PIN_SET);
+#define	SKY_TR_LOW()					HAL_GPIO_WritePin(TR_SKY_GPIO_Port, TR_SKY_Pin, GPIO_PIN_RESET);
+
+#define	SKY_EN_HIGH()					HAL_GPIO_WritePin(EN_SKY_GPIO_Port, EN_SKY_Pin, GPIO_PIN_SET);
+#define	SKY_EN_LOW()					HAL_GPIO_WritePin(EN_SKY_GPIO_Port, EN_SKY_Pin, GPIO_PIN_RESET);
+
+#define	SKY_BYP_HIGH()				HAL_GPIO_WritePin(BYP_SKY_GPIO_Port, BYP_SKY_Pin, GPIO_PIN_SET);
+#define	SKY_BYP_LOW()					HAL_GPIO_WritePin(BYP_SKY_GPIO_Port, BYP_SKY_Pin, GPIO_PIN_RESET);
+
+
+//Тангента
 
 #define PTT_PRESSED()		(!HAL_GPIO_ReadPin(TNG_GPIO_Port, TNG_Pin))
 

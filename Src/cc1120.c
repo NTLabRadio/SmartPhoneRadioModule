@@ -781,10 +781,6 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 			
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
-	
-	#ifdef DEBUG_USE_LEDS
-	LED3_ON();
-	#endif
 
 	return (1);
 }
