@@ -149,18 +149,23 @@ int main(void)
 
 	//Инициализируем все, что необходимо для протокола межмодульного обмена SPIM
 	SPIMInit();
-
-	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулей
+	
 	//Делаем аппаратный сброс CC1120
 	CC1120_HardwareReset();
-	//Проверяем работоспособность
-	CC1120_CheckModule(&hspi2);
 	
-	// запускаем ЦАП
-	DAC_write(&hspi1);
+	#ifndef SMART_PROTOTYPE
+	//Выставляем смещение на ЦАП для Front-End
+	AD5601_SetVCPForSky(&hspi1);
+	#endif
 	
 	//Аппаратный сброс CMX7262
 	CMX7262_HardwareReset();
+	
+
+	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулей
+	//Проверяем работоспособность
+	CC1120_CheckModule(&hspi2);
+	
 	//Проверяем работоспособность
 	CMX7262_CheckModule(&hspi1);
 	#endif

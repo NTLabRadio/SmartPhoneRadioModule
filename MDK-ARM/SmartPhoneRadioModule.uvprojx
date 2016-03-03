@@ -363,9 +363,9 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F071xB,DEBUG_USE_LEDS</Define>
+              <Define>USE_HAL_DRIVER,STM32F071xB</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc; ../Drivers/STM32F0xx_HAL_Driver/Inc; ../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy; ../Drivers/CMSIS/Include; ../Drivers/CMSIS/Device/ST/STM32F0xx/Include</IncludePath>
+              <IncludePath>../Inc; ../Inc/CrossPlatform; ../Drivers/STM32F0xx_HAL_Driver/Inc; ../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy; ../Drivers/CMSIS/Include; ../Drivers/CMSIS/Device/ST/STM32F0xx/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -567,7 +567,7 @@
             <File>
               <FileName>mathfuncs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\mathfuncs.c</FilePath>
+              <FilePath>..\Src\CrossPlatform\mathfuncs.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -615,7 +615,7 @@
             <File>
               <FileName>ProcessStates.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\ProcessStates.c</FilePath>
+              <FilePath>..\Src\CrossPlatform\ProcessStates.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -663,7 +663,7 @@
             <File>
               <FileName>RadioModule.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Src\RadioModule.cpp</FilePath>
+              <FilePath>..\Src\CrossPlatform\RadioModule.cpp</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -822,7 +822,7 @@
             <File>
               <FileName>cc1120.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\cc1120.c</FilePath>
+              <FilePath>..\Src\CrossPlatform\cc1120.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -870,7 +870,7 @@
             <File>
               <FileName>cmx7262.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\cmx7262.c</FilePath>
+              <FilePath>..\Src\CrossPlatform\cmx7262.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -918,7 +918,7 @@
             <File>
               <FileName>spi_periphery.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\spi_periphery.c</FilePath>
+              <FilePath>..\Src\CrossPlatform\spi_periphery.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -1120,12 +1120,12 @@
             <File>
               <FileName>SPIMLogic.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\SPIMLogic.c</FilePath>
+              <FilePath>..\Src\CrossPlatform\SPIMLogic.c</FilePath>
             </File>
             <File>
               <FileName>SLIPinterface.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Src\SLIPinterface.cpp</FilePath>
+              <FilePath>..\Src\CrossPlatform\SLIPinterface.cpp</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -1173,7 +1173,7 @@
             <File>
               <FileName>SPIMMessage.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Src\SPIMMessage.cpp</FilePath>
+              <FilePath>..\Src\CrossPlatform\SPIMMessage.cpp</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -1221,7 +1221,7 @@
             <File>
               <FileName>uart_intermodule.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\uart_intermodule.c</FilePath>
+              <FilePath>..\Src\CrossPlatform\uart_intermodule.c</FilePath>
             </File>
           </Files>
         </Group>

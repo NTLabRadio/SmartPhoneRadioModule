@@ -11,9 +11,7 @@
 #include "spi_periphery.h"
 #include "timers.h"
 	 
-	 
-	 
-uint8_t DAC_write (SPI_HandleTypeDef *hspi);	 
+uint8_t AD5601_SetVCPForSky (SPI_HandleTypeDef *hspi);	 
 	 
 	 
 #ifdef __cplusplus

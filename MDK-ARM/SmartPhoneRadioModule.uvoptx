@@ -258,7 +258,7 @@
         <periodic>1</periodic>
         <aLwin>1</aLwin>
         <aCover>0</aCover>
-        <aSer1>1</aSer1>
+        <aSer1>0</aSer1>
         <aSer2>0</aSer2>
         <aPa>0</aPa>
         <viewmode>1</viewmode>
@@ -565,7 +565,7 @@
       <GroupNumber>4</GroupNumber>
       <FileNumber>20</FileNumber>
       <FileType>1</FileType>
-      <tvExp>1</tvExp>
+      <tvExp>0</tvExp>
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
@@ -582,7 +582,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\mathfuncs.c</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\mathfuncs.c</PathWithFileName>
       <FilenameWithoutPath>mathfuncs.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -595,7 +595,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\ProcessStates.c</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\ProcessStates.c</PathWithFileName>
       <FilenameWithoutPath>ProcessStates.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -608,7 +608,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\RadioModule.cpp</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\RadioModule.cpp</PathWithFileName>
       <FilenameWithoutPath>RadioModule.cpp</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -676,7 +676,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\cc1120.c</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\cc1120.c</PathWithFileName>
       <FilenameWithoutPath>cc1120.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -689,7 +689,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\cmx7262.c</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\cmx7262.c</PathWithFileName>
       <FilenameWithoutPath>cmx7262.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -702,7 +702,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\spi_periphery.c</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\spi_periphery.c</PathWithFileName>
       <FilenameWithoutPath>spi_periphery.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -770,7 +770,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\SPIMLogic.c</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\SPIMLogic.c</PathWithFileName>
       <FilenameWithoutPath>SPIMLogic.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -783,7 +783,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\SLIPinterface.cpp</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\SLIPinterface.cpp</PathWithFileName>
       <FilenameWithoutPath>SLIPinterface.cpp</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -796,7 +796,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\SPIMMessage.cpp</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\SPIMMessage.cpp</PathWithFileName>
       <FilenameWithoutPath>SPIMMessage.cpp</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -809,7 +809,7 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Src\uart_intermodule.c</PathWithFileName>
+      <PathWithFileName>..\Src\CrossPlatform\uart_intermodule.c</PathWithFileName>
       <FilenameWithoutPath>uart_intermodule.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
