@@ -14,14 +14,22 @@
 #ifndef __UART_INTERMODULE_H
 #define __UART_INTERMODULE_H
 
-#include "SLIPinterface.h"
+#include "slipinterface.h"
 
 #ifdef __cplusplus
  extern "C" {
 #endif
 
+#ifdef STM32F071xB
 #include "stm32f0xx_hal.h"
 #include "stm32f0xx_hal_uart.h"
+#endif	 
+
+#ifdef STM32F103xE	 	 
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal_uart.h"
+#endif
+	 
 #include <string.h>
 #include "DebugLog.h"
 	 

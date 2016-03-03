@@ -307,7 +307,9 @@ void CMX7262_TxFIFO(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 void CMX7262_RxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 void CMX7262_TxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 
+#ifndef SMART_PROTOTYPE
 void CMX7262_HardwareReset(void);
+#endif
 
 //-------------------------------------- CBUS DEFINES AND FUNCTIONS ----------------------------------------------
 
