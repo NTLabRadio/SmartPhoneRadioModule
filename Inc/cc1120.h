@@ -20,13 +20,18 @@
 
 #ifdef STM32F071xB
 #include "stm32f0xx_hal.h"
-#include "stm32f0xx_hal_spi.h"
+#include "stm32f0xx_hal_spi.h" 
 #endif
 	 
 #ifdef STM32F103xE	 
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_spi.h"	 
 #endif
+
+#ifndef SMART_PROTOTYPE
+#include "AD5601.h"		 
+#endif	 
+
 	 
 #include "globals.h"
 #include "spi_periphery.h"
