@@ -17,6 +17,7 @@
 #include <string.h>
 #include "cc1120.h"
 #include "cmx7262.h"
+#include "FIFOBuffers.h"
 #include "RadioModule.h"
 
 #define MAX_SIZE_OF_DATA_FROM_CMX7262 (2048)
