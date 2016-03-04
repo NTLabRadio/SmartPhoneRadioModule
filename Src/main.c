@@ -35,6 +35,7 @@
 
 /* USER CODE BEGIN Includes */
 #include <string.h>
+#include "ad5601.h"
 #include "globals.h"
 #include "cc1120.h"
 #include "cmx7262.h"
