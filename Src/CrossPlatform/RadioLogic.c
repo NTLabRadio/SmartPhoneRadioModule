@@ -57,13 +57,13 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize)
 	
 	uint16_t nSizeOfRecData = CC1120_RxFIFONumBytes(g_CC1120Struct.hSPI);
 			
-	if(nSizeOfRecData<=MAX_RADIOPACK_SIZE)
+	if((nSizeOfRecData<=MAX_RADIOPACK_SIZE) && nSizeOfRecData)
 		CC1120_RxData(&g_CC1120Struct,RadioPackRcvd,&nSizeOfRecData);
 	else
 		return;
-	
+
 	RadioMessage RadioMsgRcvd(RadioPackRcvd,nSizeOfRecData);
-	
+
 	nPayloadSize = RadioMsgRcvd.getBody(pPayloadData);
 
 	return;
