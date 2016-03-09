@@ -25,6 +25,10 @@
 #define MAX_SIZE_OF_DATA_FROM_CMX7262 (2048)
 #define MAX_SIZE_OF_DATA_TO_CMX7262 	(4096)
 
+
+void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize);
+
+
 void RadioModuleInit(SPI_HandleTypeDef *hspiCMX7262, SPI_HandleTypeDef *hspiCC1120);
 void RadioModuleDeInit(void);
 

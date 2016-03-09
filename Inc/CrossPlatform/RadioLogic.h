@@ -14,6 +14,7 @@
 #include "cc1120.h"
 #include "RadioMessage.h"
 #include "RadioModule.h"
+#include "ProcessStates.h"
 
 extern RadioModule* pobjRadioModule;
 extern CC1120_TypeDef  g_CC1120Struct;
