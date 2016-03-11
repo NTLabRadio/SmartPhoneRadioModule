@@ -627,7 +627,7 @@ void CMX7262_AnalogBlocks(CMX7262_TypeDef *pCmx7262)
 	// Power up the appropriate analog blocks - Start
 	// DAC Pwr, OP Bias, SPKR1/SPKR2, Enable DrvPwr 1&2
 	#ifndef CMX7262_SPKR1_OUT
-	uData = 0x086A;
+	uData = 0x0865; // 0x086A
 	#else
 	uData = 0x088A;
 	#endif	
@@ -649,7 +649,7 @@ void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262)
 	uint16_t uData;
 	uData = (uint16_t)pCmx7262->sInputGain;
 	#ifdef DEBUG_CMX7262_MIC_MAXGAIN
-	uData = 7;
+	uData = 5; // максимум 7, 5 рекомендуемое значение
 	#endif
 	// Position the gain to ANAIN2
 	uData = uData << 8;

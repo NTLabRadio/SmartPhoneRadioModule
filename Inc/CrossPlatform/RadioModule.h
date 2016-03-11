@@ -159,7 +159,7 @@ private:
 	static const uint8_t MAX_AUDIO_OUT_GAIN_CODE 						= 7;
 	static const uint8_t CMX7262_MAX_AUDIO_OUT_GAIN_VALUE		= 59;
 	static const uint8_t CMX7262_STEP_AUDIO_OUT_GAIN_VALUE 	= 9;
-	static const uint8_t CMX7262_AUDIO_OUT_EXTRAGAIN_VALUE 	=	0x80;
+	static const uint16_t CMX7262_AUDIO_OUT_EXTRAGAIN_VALUE 	=	0x8000;
 
 	uint16_t AudioOutGainCodeToCMX7262ValueReg(uint8_t audioOutLevel);
 	void SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX7262AudioGainOut);
