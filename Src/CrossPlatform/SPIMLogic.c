@@ -5,18 +5,28 @@ SPIMMessage*	pSPIMmsgRcvd;
 //Объект для формирования сообщений SPIM-протокола для отправки
 SPIMMessage*	pSPIMmsgToSend;
 
+extern QueDataFrames QueDataFromExtDev;
+extern QueDataFrames QueDataToExtDev;	
+
+#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+uint16_t g_cntDataPckToExtDev = 0;
+#endif
+
+#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
+uint16_t g_cntFramesPushToQue = 0;
+#endif
+
+
 void SPIMInit()
 {
 	//Создаем объекты для обработки и формирования сообщений SPIM-протокола
 	pSPIMmsgRcvd = new SPIMMessage;
-	//pSPIMmsgToSend  = new SPIMMessage;
 }
 
 void SPIMDeInit()
 {
 	//Удаляем объекты для обработки и формирования сообщений SPIM-протокола
 	delete pSPIMmsgRcvd;
-	//delete pSPIMmsgToSend;
 }
 
 void ProcessDataFromExtDev()
@@ -58,6 +68,7 @@ void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd)
 	//Отправляем сформированный ответ
 	SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);
 }
+
 
 
 void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend)
@@ -104,22 +115,39 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 			
 			//Формируем тело ответа, указывающего, что команда выполнена успешно
 			//TODO Неименованные константы
-			bodySize = 1;		
-			*pBodyData = 1;
+			bodySize = 1;
+			*pBodyData = SPIM_OP_RESULT_SUCCESS;
 			break;
 		case SPIM_CMD_SEND_DATA_FRAME:
+			uint8_t nAnswer;
+		
+			//Копируем данные в очередь для отправки, если в ней есть место
+			if(QueDataFromExtDev.PushFrame(SPIMCmdRcvd->Body,SPIMCmdRcvd->getSizeBody()))
+			{
+				nAnswer = SPIM_OP_RESULT_SUCCESS;		//и отвечаем, что все ок, данные будут переданы
+				#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
+				g_cntFramesPushToQue++;
+				#endif
+			}
+			else
+				nAnswer = SPIM_OP_RESULT_FAIL;			//если места нет, отвечаем, что все плохо, стоит попробовать попозже
+
+			bodySize = 1;
+			*pBodyData = nAnswer;
 			break;
 		case SPIM_CMD_TAKE_DATA_FRAME:
 			break;	
 		case SPIM_CMD_REQ_CURRENT_PARAM:
 		{
-			//TODO Если запрос асинхронный, то установить режим слежения за соответствующими параметрами
-
 			//Для обработки сообщения типа REQ_CURRENT_PARAM будем использовать специальный вложенный класс cmdReqParam
 			//Передадим ему указатель на сообщение
 			SPIMCmdRcvd->cmdReqParam.SetPointerToMessage(SPIMCmdRcvd);
 			//В соответствии с запрашиваемыми параметрами сформируем тело сообщения ответа
 			FormCurrentParamAnswer(SPIMCmdRcvd, pBodyData, bodySize);
+			
+			//Если запрос асинхронный, то устанавливаем режим слежения за соответствующими параметрами
+			if(SPIMCmdRcvd->cmdReqParam.isAsynReqParam())
+				pobjRadioModule->SetAsyncReqMaskParam(SPIMCmdRcvd->cmdReqParam.MaskReqParam());
 			break;
 		}
 		case SPIM_CMD_SOFT_VER:
@@ -141,8 +169,8 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	uint8_t opModeCode = SPIMCmdRcvd->Body[0];
 	
 	//Разбираем код на отдельные параметры
-	uint8_t radioChanType, signalPower, ARMPowerMode;
-	SPIMCmdRcvd->ParseOpModeCode(opModeCode, radioChanType, signalPower, ARMPowerMode);
+	uint8_t radioChanType, signalPower, ARMPowerMode, baudRate;
+	SPIMCmdRcvd->ParseOpModeCode(opModeCode, radioChanType, signalPower, ARMPowerMode, baudRate);
 	
 	//Применяем принятые значения параметров рабочего режима
 	pobjRadioModule->SetRadioChanType(radioChanType);
@@ -154,6 +182,7 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	#ifdef ENABLE_SET_ARM_STANDBY_MODE
 	pobjRadioModule->SetARMPowerMode(ARMPowerMode);
 	#endif
+	pobjRadioModule->SetRadioBaudRate(baudRate);
 	
 	
 	//Читаем код аудиопараметров
@@ -169,6 +198,7 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 
 	//Читаем код рабочей частоты передачи
 	uint16_t TXFreqCode;
+	//TODO Неименованная константа
 	memcpy(&TXFreqCode,SPIMCmdRcvd->Body+2,sizeof(TXFreqCode));
 	
 	//Применяем код рабочей частоты передачи
@@ -176,6 +206,7 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	
 	//Читаем код рабочей частоты приема
 	uint16_t RXFreqCode;
+	//TODO Неименованная константа
 	memcpy(&RXFreqCode,SPIMCmdRcvd->Body+4,sizeof(RXFreqCode));	
 	
 	//Применяем код рабочей частоты приемачи
@@ -197,9 +228,10 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 		uint8_t radioChanType = pobjRadioModule->GetRadioChanType();
 		uint8_t radioSignalPower = pobjRadioModule->GetRadioSignalPower();
 		uint8_t powerMode = pobjRadioModule->GetARMPowerMode();
+		uint8_t baudRate = pobjRadioModule->GetRadioBaudRate();
 
 		//Формируем код рабочего режима
-		uint8_t OpModeCode = SPIMCmdRcvd->cmdReqParam.OpModeCode(radioChanType,radioSignalPower,powerMode);
+		uint8_t OpModeCode = SPIMMessage::CmdReqParam::OpModeCode(radioChanType,radioSignalPower,powerMode,baudRate);
 		
 		pBodyData[bodySize] = OpModeCode;
 		bodySize++;		
@@ -213,7 +245,7 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 		uint8_t audioOutLevel = pobjRadioModule->GetAudioOutLevel();
 		
 		//Формируем код аудионастроек
-		uint8_t AudioCode = SPIMCmdRcvd->cmdReqParam.AudioCode(audioOutLevel,audioInLevel);
+		uint8_t AudioCode = SPIMMessage::CmdReqParam::AudioCode(audioOutLevel,audioInLevel);
 		
 		pBodyData[bodySize] = AudioCode;
 		bodySize++;
@@ -248,4 +280,125 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 		pBodyData[bodySize] = pobjRadioModule->GetRadioChanState();
 		bodySize++;
 	}		
+}
+
+
+void ProcessDataToExtDev()
+{
+	//Если есть данные для внешнего устройства
+	if(!QueDataToExtDev.isEmpty())
+	{
+		//Формируем и отправляем сообщение с данными для внешнего устройства
+		FormAndSendDataMsgToExtDev();
+	}
+}
+
+
+void ProcessAsyncReq()
+{
+	ProcessDataToExtDev();
+	
+	uint8_t maskParam = pobjRadioModule->GetMaskOfChangedParams();
+	if(maskParam)
+	{
+		//Создаем сообщение для отправки
+		SPIMMessage SPIMmsgToSend;
+
+		//Формируем ответ для управляющего устройства
+		FormAsyncReqParamBack(maskParam,&SPIMmsgToSend);
+		
+		//Отправляем сформированный ответ
+		SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);
+	}
+}
+	
+
+void FormAsyncReqParamBack(uint8_t maskReqParam, SPIMMessage* SPIMmsgToSend)
+{
+	//ID конмады
+	uint8_t IDcmd = SPIM_CMD_REQ_CURRENT_PARAM_BACK;
+	//Адресат - внешнешнее управляющее устройство
+	uint8_t address = SPIM_ADDR_EXTDEV;
+	//Порядковый номер асинхронного ответа - всегда нулевой
+	uint8_t noMsg = 0;
+	
+	//Получим указатель на тело сообщения
+	uint8_t* pBodyData = SPIMmsgToSend->Body;
+	uint8_t bodySize = 0;
+
+	FormBodyOfAsyncReqParamBack(maskReqParam,pBodyData,bodySize);
+	
+	SPIMmsgToSend->setHeader(bodySize,address,noMsg,IDcmd);
+	
+	SPIMmsgToSend->setBody(pBodyData,bodySize);
+	
+	SPIMmsgToSend->setCRC();
+}
+
+
+void FormBodyOfAsyncReqParamBack(uint8_t maskReqParam, uint8_t* pBodyMsgToSend, uint8_t& bodySizeMsgToSend)
+{
+	//Имитируем прием сообщения запроса
+	SPIMMessage SPIMCmdRcvd;
+		
+	//Получим указатель на тело сообщения запроса
+	uint8_t* pBodyCmdRcvd = SPIMCmdRcvd.Body;
+	uint8_t bodySizeCmdRcvd = 0;
+		
+	//Составим тело сообщения запроса
+	pBodyCmdRcvd[0] = maskReqParam;
+	pBodyCmdRcvd[0] |= SPIMMessage::CmdReqParam::ASYNC_MASK_IN_REQ;
+	bodySizeCmdRcvd++;
+		
+	//Передадим указатель на сообщение специальному вложенному классу cmdReqParam
+	SPIMCmdRcvd.cmdReqParam.SetPointerToMessage(&SPIMCmdRcvd);	
+		
+	//В соответствии с запрашиваемыми параметрами сформируем тело сообщения ответа
+	FormCurrentParamAnswer(&SPIMCmdRcvd, pBodyMsgToSend, bodySizeMsgToSend);
+}
+
+
+void FormAndSendDataMsgToExtDev()
+{
+	//Если есть данные для внешнего устройства
+	if(!QueDataToExtDev.isEmpty())
+	{
+		SPIMMessage SPIMmsgToSend;
+
+		//Формируем сообщение с данными для внешнего устройства
+		FormDataMsgToExtDev(&SPIMmsgToSend);
+
+		#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+		g_cntDataPckToExtDev++;
+		#endif
+		
+		//Отправляем сформированное сообщение
+		SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);
+	}
+}
+
+
+void FormDataMsgToExtDev(SPIMMessage* SPIMCmdToSend)
+{
+	//Если есть данные для внешнего устройства
+	if(!QueDataToExtDev.isEmpty())
+	{	
+		//ID команды
+		uint8_t IDcmd = SPIM_CMD_TAKE_DATA_FRAME_BACK;
+		//Адресат - внешнешнее управляющее устройство
+		uint8_t address = SPIM_ADDR_EXTDEV;
+		//Порядковый номер команды - нулевой (это не ответ на команду)
+		uint8_t noMsg = 0;		
+		
+		//Получим указатель на тело сообщения
+		uint8_t* pBodyData = SPIMCmdToSend->Body;
+
+		uint16_t bodySize = QueDataToExtDev.PopFrame(pBodyData);
+		
+		SPIMCmdToSend->setHeader(bodySize,address,noMsg,IDcmd);
+		
+		SPIMCmdToSend->setBody(pBodyData,bodySize);
+		
+		SPIMCmdToSend->setCRC();
+	}
 }

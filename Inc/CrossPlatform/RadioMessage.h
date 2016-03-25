@@ -14,23 +14,7 @@
 #include <string.h>
 
 
-typedef struct {
-	uint8_t dstAddress;     // адрес получателя
-	uint8_t srcAddress;     // адрес источника
-	uint8_t dataType;     	// тип данных
-	uint8_t reserve[2];
-} structRadioMsgHeader;
-
-
 #define RADIO_BROADCAST_ADDR 	(0)
-
-typedef enum
-{
-	RADIO_DATATYPE_VOICE					=0x01,
-	RADIO_DATATYPE_CONF_DATA			=0x02,
-	RADIO_DATATYPE_UNCONF_DATA		=0x03
-} radioDataTypes_t;
-
 
 class RadioMessage
 {
@@ -45,13 +29,23 @@ public:
 
 	uint8_t* Body;
 
-	uint8_t setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nDataType);
+	uint8_t setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nDataType, uint8_t nDataSize);
 	uint8_t setBody(uint8_t* pBodyData, uint8_t bodySize);
 	uint8_t setMsg(uint8_t* pMsgData, uint8_t msgSize);
 
 	uint8_t getHeader(uint8_t* pHeaderData);
 	uint8_t getBody(uint8_t* pBodyData);
 
+	uint8_t getDstAddress();
+	uint8_t getSrcAddress();
+	uint8_t getDataType();
+
+	typedef enum radioDataTypes_t
+	{
+		RADIO_DATATYPE_VOICE					=0x01,
+		RADIO_DATATYPE_CONF_DATA			=0x02,
+		RADIO_DATATYPE_UNCONF_DATA		=0x03
+	} radioDataTypes_t;
 
 private:
 
@@ -66,6 +60,14 @@ private:
 
 	//Минимальный размер всего сообщения, байт
 	static const uint8_t MIN_SIZE_OF_MSG = SIZE_OF_HEADER;
+
+	typedef struct {
+		uint8_t dstAddress;     // адрес получателя
+		uint8_t srcAddress;     // адрес источника
+		uint8_t dataType;     	// тип данных (речь / гарант. данные / негарант. данные)
+		uint8_t dataSize;     	// размер полезных данных в сообщении, байт
+		uint8_t reserve;
+	} structRadioMsgHeader;
 
 	uint8_t RadioMsgData[MAX_SIZE_OF_MSG];
 	uint8_t* RadioHeaderData;

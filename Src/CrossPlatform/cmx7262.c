@@ -528,7 +528,7 @@ uint16_t CMX7262_InitHardware(CMX7262_TypeDef *pCmx7262)
 	// Configure analog blocks
 	CMX7262_AnalogBlocks(pCmx7262);
 	// Setup the input and output gains.
-	CMX7262_AudioInputGain(pCmx7262);
+	CMX7262_AudioInputGain(pCmx7262,CMX7262_INPUT_GAIN_DEFAULT);
 	CMX7262_AudioOutputGain(pCmx7262,CMX7262_OUPUT_GAIN_DEFAULT);
 	
 	// Enable register write confirmation for VCTRL
@@ -627,7 +627,7 @@ void CMX7262_AnalogBlocks(CMX7262_TypeDef *pCmx7262)
 	// Power up the appropriate analog blocks - Start
 	// DAC Pwr, OP Bias, SPKR1/SPKR2, Enable DrvPwr 1&2
 	#ifndef CMX7262_SPKR1_OUT
-	uData = 0x0865; // 0x086A
+	uData = 0x086A;
 	#else
 	uData = 0x088A;
 	#endif	
@@ -644,15 +644,15 @@ void CMX7262_AnalogBlocks(CMX7262_TypeDef *pCmx7262)
 
 
 // Set the audio input gain. Note that the full 16 bit register for input and output is set by the parameter..
-void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262)
+void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262, uint16_t uGain)
 {
 	uint16_t uData;
-	uData = (uint16_t)pCmx7262->sInputGain;
 	#ifdef DEBUG_CMX7262_MIC_MAXGAIN
-	uData = 5; // максимум 7, 5 рекомендуемое значение
+	uData = (uint16_t)pCmx7262->sInputGain;
+	uData = 7;
 	#endif
 	// Position the gain to ANAIN2
-	uData = uData << 8;
+	uData = uGain << 8;
 	CBUS_Write16(ANAIN_GAIN,&uData,1,pCmx7262->uInterface);
 }
 

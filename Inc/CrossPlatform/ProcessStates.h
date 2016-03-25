@@ -18,6 +18,7 @@
 #include "cc1120.h"
 #include "cmx7262.h"
 #include "FIFOBuffers.h"
+#include "QueDataFrames.h"
 #include "RadioLogic.h"
 #include "RadioModule.h"
 
@@ -25,12 +26,10 @@
 #define MAX_SIZE_OF_DATA_FROM_CMX7262 (2048)
 #define MAX_SIZE_OF_DATA_TO_CMX7262 	(4096)
 
-
-void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize);
-
-
 void RadioModuleInit(SPI_HandleTypeDef *hspiCMX7262, SPI_HandleTypeDef *hspiCC1120);
 void RadioModuleDeInit(void);
+
+void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize);
 
 void ProcessPTTState(void);
 
@@ -42,5 +41,10 @@ void ProcessCMX7262State(void);
 void TransceiverStartRx(void);
 void VocoderStartDecode(void);
 void VocoderStartEncode(void);
+
+#ifndef SMART_PROTOTYPE
+void FrontEndSetToTx();
+void FrontEndSetToRx();
+#endif
 
 #endif /* __PROCESSSTATES_H */	 

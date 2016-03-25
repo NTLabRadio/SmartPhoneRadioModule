@@ -7,32 +7,66 @@ extern CC1120_TypeDef  g_CC1120Struct;
 
 RadioModule::RadioModule()
 {
-	RadioModuleState = RADIOMODULE_STATE_IDLE;
+	SetRadioModuleState(RADIOMODULE_STATE_IDLE);
 	
 	//Тип радиоканала
-	RadioChanType = RADIOCHAN_TYPE_IDLE;
+	//По умолчанию устанавливаем режим обработки голоса, поскольку этот режим является универсальным
+	//(в этом режиме данные также обрабатываются)	
+	SetRadioChanType(RADIOCHAN_TYPE_VOICE);
 	//Режим мощности ВЧ сигнала
-	RadioSignalPower = RADIO_SIGNALPOWER_LOW;
+	SetRadioSignalPower(RADIO_SIGNALPOWER_LOW);
 	//Режим энергосбережения
-	ARMPowerMode = ARM_POWERMODE_NORMAL;
-
+	SetARMPowerMode(ARM_POWERMODE_NORMAL);
+	//Канальная скорость передачи данных
+	SetRadioBaudRate(RADIO_BAUD_RATE_4800);
+	
 	//Рабочие частоты передачи/приема
-	NoTxFreqChan = DEFAULT_TX_FREQ_CHAN;
-	NoRxFreqChan = DEFAULT_RX_FREQ_CHAN;
-	ApplyRadioFreq();
+	SetTxFreqChan(DEFAULT_TX_FREQ_CHAN);
+	SetRxFreqChan(DEFAULT_RX_FREQ_CHAN);
 
 	//Настройки аудио
-	AudioInLevel = DEFAULT_AUDIO_IN_GAIN;
-	AudioOutLevel = DEFAULT_AUDIO_OUT_GAIN;
-	ApplyAudioSettings();
+	SetAudioInLevel(DEFAULT_AUDIO_IN_GAIN);
+	SetAudioOutLevel(DEFAULT_AUDIO_OUT_GAIN);
 	
 	//Уровень приема
 	RSSILevel = 0;
 	
 	//Текущее состояние радиоканала
-	RadioChanState = RADIOCHAN_STATE_IDLE;
+	SetRadioChanState(RADIOCHAN_STATE_IDLE);
 	
-	RadioAddress = DEFAULT_RADIO_ADDRESS;
+	//Собственный абонентский адрес
+	SetRadioAddress(DEFAULT_RADIO_ADDRESS);
+	
+	SetAsyncReqMaskParam(0);
+}
+
+
+uint8_t RadioModule::SetRadioModuleState(uint8_t state)
+{
+	if(state<NUM_RADIOMODULE_STATES)
+	{
+		RadioModuleState = (en_RadioModuleStates)state;
+		return(0);
+	}
+	else
+		return(1);	
+}
+
+uint8_t RadioModule::GetRadioModuleState()
+{
+	return(RadioModuleState);
+}
+
+
+void RadioModule::SwitchToIdleState()
+{
+	SetRadioModuleState(RADIOMODULE_STATE_IDLE);
+	
+	SetRadioChanState(RADIOCHAN_STATE_IDLE);
+	
+	//По умолчанию устанавливаем режим обработки голоса, поскольку этот режим является универсальным
+	//(в этом режиме данные также обрабатываются)
+	RadioChanType = RADIOCHAN_TYPE_VOICE;	
 }
 
 
@@ -83,6 +117,26 @@ uint8_t RadioModule::GetARMPowerMode()
 {
 	return(ARMPowerMode);
 }
+
+uint8_t RadioModule::SetRadioBaudRate(uint8_t baudRate)
+{
+	if(baudRate<NUM_RADIO_BAUD_RATES)
+	{
+		RadioBaudRate = (en_RadioBaudRates)baudRate;
+		ApplyRadioConfig();
+
+		return(0);
+	}
+	else
+		return(1);	
+}
+
+uint8_t RadioModule::GetRadioBaudRate()
+{
+	return(RadioBaudRate);
+}
+
+
 
 uint8_t RadioModule::SetTxFreqChan(uint16_t noFreqChan)
 {
@@ -150,6 +204,15 @@ uint8_t RadioModule::SetRadioChanState(uint8_t radioChanState)
 {
 	RadioChanState = (en_RadioChanStates)radioChanState;
 	
+	//Если до сих пор в маске измененных параметров нет текущего параметра
+	if(! (MaskOfChangedParams & SPIMMessage::CmdReqParam::CHANSTATE_MASK_IN_REQ))
+	{
+		//Добавляем его в маску
+		MaskOfChangedParams |= SPIMMessage::CmdReqParam::CHANSTATE_MASK_IN_REQ;
+		//И накладываем маску запрашиваемых параметров
+		MaskOfChangedParams &= AsyncReqMaskParam;
+	}
+	
 	//Частоты передачи и приема могут отличаться. При смене режима устанавливаем новую рабочую частоту
 	ApplyRadioFreq();
 	
@@ -193,8 +256,54 @@ void RadioModule::ApplyAudioSettings()
 	//По 3-битному значению кода определяем значение соответствуюшего регистра CMX7262
 	CMX7262AudioGainOut = AudioOutGainCodeToCMX7262ValueReg(AudioOutLevel);
 	
+	CMX7262AudioGainIn = AudioInLevel;
+	
 	//Записываем вычисленные значения регистров в CMX7262
 	SetCMX7262AudioGains(CMX7262AudioGainIn, CMX7262AudioGainOut);
+}
+
+void RadioModule::ApplyRadioConfig()
+{
+	const CC1120regSetting_t *CC1120_Config;
+	uint8_t nSizeConfig;
+	
+	//TODO Перед применением конфига узнать, в каком состоянии находится радимодуль (передача/прием), 
+	//и после настройки вернуть его в это состояние
+
+	//TODO Проверить, какая конфигурация установлена в текущий момент. Если новая конфигурация не отличается
+	//от текущей, не проводить лишнюю настройку
+	
+	switch(RadioBaudRate)
+	{
+		case RADIO_BAUD_RATE_4800:
+			CC1120_Config = CC1120_Config_4800;
+			nSizeConfig = sizeof(CC1120_Config_4800)/sizeof(CC1120regSetting_t);
+			break;
+		case RADIO_BAUD_RATE_9600:
+			CC1120_Config = CC1120_Config_9600;
+			nSizeConfig = sizeof(CC1120_Config_9600)/sizeof(CC1120regSetting_t);
+			break;
+		case RADIO_BAUD_RATE_19200:
+			CC1120_Config = CC1120_Config_19200;
+			nSizeConfig = sizeof(CC1120_Config_19200)/sizeof(CC1120regSetting_t);
+			break;
+		case RADIO_BAUD_RATE_48000:
+			CC1120_Config = CC1120_Config_48000;
+			nSizeConfig = sizeof(CC1120_Config_48000)/sizeof(CC1120regSetting_t);
+			break;
+		default:
+			CC1120_Config = CC1120_Config_4800;
+			nSizeConfig = sizeof(CC1120_Config_4800)/sizeof(CC1120regSetting_t);
+			break;		
+	}
+	
+	CC1120_SetConfig(g_CC1120Struct.hSPI, CC1120_Config, nSizeConfig);
+	
+	//Вместе с конфигурацией изменилась рабочая частота (на частоту, заданную в конфигурации по умолчанию)
+	//Возвращаем частоту, установленную пользователем
+	ApplyRadioFreq();
+	
+	SwitchToIdleState();
 }
 
 
@@ -265,6 +374,26 @@ uint16_t RadioModule::AudioOutGainCodeToCMX7262ValueReg(uint8_t audioOutLevel)
 void RadioModule::SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX7262AudioGainOut)
 {
 	CMX7262_AudioOutputGain(&g_CMX7262Struct, CMX7262AudioGainOut);
-	CMX7262_AudioInputGain(&g_CMX7262Struct);
+	CMX7262_AudioInputGain(&g_CMX7262Struct, CMX7262AudioGainIn);
 }
 
+
+uint8_t RadioModule::GetAsyncReqMaskParam()
+{
+	return(AsyncReqMaskParam);
+}
+
+uint8_t RadioModule::GetMaskOfChangedParams()
+{
+	uint8_t nRes = AsyncReqMaskParam & MaskOfChangedParams;
+	MaskOfChangedParams = 0;
+	
+	return(nRes);
+}
+
+uint8_t RadioModule::SetAsyncReqMaskParam(uint8_t mask)
+{
+	AsyncReqMaskParam = mask;
+	
+	return(0);
+}

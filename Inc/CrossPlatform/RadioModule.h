@@ -18,6 +18,7 @@
 
 #include "cc1120.h"
 #include "cmx7262.h"
+#include "SPIMMessage.h"
  
 enum en_RadioChanTypes
 {
@@ -42,6 +43,15 @@ enum en_ARMPowerModes
 	NUM_ARM_POWERMODES
 };
 
+enum en_RadioBaudRates
+{
+	RADIO_BAUD_RATE_4800		=0,
+	RADIO_BAUD_RATE_9600		=1,
+	RADIO_BAUD_RATE_19200		=2,
+	RADIO_BAUD_RATE_48000		=3,
+	NUM_RADIO_BAUD_RATES
+};
+
 enum en_RadioChanStates
 {
 	RADIOCHAN_STATE_IDLE,
@@ -56,7 +66,8 @@ enum en_RadioModuleStates
 	RADIOMODULE_STATE_TX_WAITING,
 	RADIOMODULE_STATE_TX_RUNNING,
 	RADIOMODULE_STATE_RX_WAITING,
-	RADIOMODULE_STATE_RX_RUNNING
+	RADIOMODULE_STATE_RX_RUNNING,
+	NUM_RADIOMODULE_STATES
 };
 
 class RadioModule
@@ -65,7 +76,10 @@ public:
 	
   RadioModule();
 
-	en_RadioModuleStates RadioModuleState;
+	uint8_t SetRadioModuleState(uint8_t state);
+	uint8_t GetRadioModuleState();
+
+	void SwitchToIdleState();
 
 	uint8_t SetRadioChanType(uint8_t chanType);
 	uint8_t GetRadioChanType();
@@ -75,6 +89,9 @@ public:
 
 	uint8_t SetARMPowerMode(uint8_t powerMode);
 	uint8_t GetARMPowerMode();
+
+	uint8_t SetRadioBaudRate(uint8_t baudRate);
+	uint8_t GetRadioBaudRate();
 
 	uint8_t SetTxFreqChan(uint16_t noFreqChan);
 	uint16_t GetTxFreqChan();
@@ -95,23 +112,34 @@ public:
 
 	uint8_t SetRadioAddress(uint8_t address);
 	uint8_t GetRadioAddress();
+	
+	uint8_t GetAsyncReqMaskParam();
+	uint8_t SetAsyncReqMaskParam(uint8_t mask);
+	
+	uint8_t GetMaskOfChangedParams();
 
 	uint8_t isTxMode();
 	uint8_t isRxMode();
 	
 	void ApplyAudioSettings();
+	void ApplyRadioConfig();
 	void ApplyRadioFreq();
 	
 	uint16_t GetARMSoftVer();
 
 private:
 	
-	//Тип радиоканала
+	//Состояние радиомодуля (в т.ч. переходные состояния между режимами передачи и приема)
+	en_RadioModuleStates RadioModuleState;
+
+	//Тип радиоканала (речь/данные)
 	en_RadioChanTypes RadioChanType;
 	//Режим мощности ВЧ сигнала
 	en_RadioSignalPowers	RadioSignalPower;
 	//Режим энергосбережения
 	en_ARMPowerModes ARMPowerMode;
+	//Канальная скорость передачи данных
+	en_RadioBaudRates RadioBaudRate;
 
 	//Текущая рабочая частота радиомодуля
 	uint16_t NoCurFreqChan;
@@ -124,9 +152,16 @@ private:
 	uint8_t AudioOutLevel;
 
 	uint8_t RSSILevel;
+	
+	//Состояние радиоканала: - активный прием (прием и обработка полезных данных),
+	//											 - дежурный прием (ожидание полезных данных),
+	//											 - передача
 	en_RadioChanStates RadioChanState;
 
 	uint8_t RadioAddress;
+	
+	uint8_t AsyncReqMaskParam;
+	uint8_t MaskOfChangedParams;
 
 	struct RadioModuleSettings
 	{
@@ -159,7 +194,7 @@ private:
 	static const uint8_t MAX_AUDIO_OUT_GAIN_CODE 						= 7;
 	static const uint8_t CMX7262_MAX_AUDIO_OUT_GAIN_VALUE		= 59;
 	static const uint8_t CMX7262_STEP_AUDIO_OUT_GAIN_VALUE 	= 9;
-	static const uint16_t CMX7262_AUDIO_OUT_EXTRAGAIN_VALUE 	=	0x8000;
+	static const uint16_t CMX7262_AUDIO_OUT_EXTRAGAIN_VALUE =	0x8000;
 
 	uint16_t AudioOutGainCodeToCMX7262ValueReg(uint8_t audioOutLevel);
 	void SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX7262AudioGainOut);

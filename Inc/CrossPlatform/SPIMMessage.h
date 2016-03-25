@@ -23,7 +23,7 @@ enum en_SPIMcmds
 	SPIM_CMD_SET_MODE_BACK					=0x03,
 	SPIM_CMD_SEND_DATA_FRAME				=0x04,
 	SPIM_CMD_SEND_DATA_FRAME_BACK		=0x05,
-	SPIM_CMD_TAKE_DATA_FRAME				=0x06,
+	SPIM_CMD_TAKE_DATA_FRAME        =0x06,
 	SPIM_CMD_TAKE_DATA_FRAME_BACK		=0x07,
 	SPIM_CMD_REQ_CURRENT_PARAM 			=0x08,
 	SPIM_CMD_REQ_CURRENT_PARAM_BACK =0x09,
@@ -61,21 +61,26 @@ public:
 	uint8_t getNoMsg();
 	uint8_t getSizeBody();
 	uint8_t getIDCmd();
+
+	//Максимальный размер тела сообщения, байт
+	static const uint8_t MAX_SIZE_OF_BODY = 128;
 	
 	uint8_t IDBackCmd(uint8_t IDCmd);
 	
-	static void ParseOpModeCode(uint8_t opModeCode, uint8_t& RadioChanType, uint8_t& SignalPower, uint8_t& ARMPowerMode);
+  static void ParseOpModeCode(uint8_t opModeCode, uint8_t& RadioChanType, uint8_t& SignalPower, uint8_t& ARMPowerMode, uint8_t& BaudRate);
 	static void ParseAudioCode(uint8_t audioCode, uint8_t& AudioOutLevel, uint8_t& AudioInLevel);
 	
 	class CmdReqParam
 	{
 		public:
-			static uint8_t OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode);
+			static uint8_t OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode, uint8_t BaudRate);
 			static uint8_t AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel);
 			
 			void SetPointerToMessage(SPIMMessage* mes);
 		
 			uint8_t MaskReqParam();
+		
+			uint8_t isAsynReqParam();
 		
 			uint8_t isOpModeReq();
 			uint8_t isAudioReq();
@@ -84,22 +89,37 @@ public:
 			uint8_t isRSSIReq();
 			uint8_t isChanStateReq();
 		
-		private:
-			SPIMMessage* objSPIMMessage;			
+			//Маска асинхронного запроса параметров
+			static const uint8_t ASYNC_MASK_IN_REQ = (1<<0);
 		
 			//Маски запрашиваемых параметров
-			#define OPMODE_MASK_IN_REQ						(1<<1)
-			#define AUDIO_MASK_IN_REQ							(1<<2)
-			#define TXFREQ_MASK_IN_REQ						(1<<3)
-			#define RXFREQ_MASK_IN_REQ						(1<<4)
-			#define RSSI_MASK_IN_REQ							(1<<5)
-			#define CHANSTATE_MASK_IN_REQ					(1<<5)			
+			static const uint8_t OPMODE_MASK_IN_REQ = (1<<1);
+			static const uint8_t AUDIO_MASK_IN_REQ = (1<<2);
+			static const uint8_t TXFREQ_MASK_IN_REQ = (1<<3);
+			static const uint8_t RXFREQ_MASK_IN_REQ = (1<<4);
+			static const uint8_t RSSI_MASK_IN_REQ = (1<<5);
+			static const uint8_t CHANSTATE_MASK_IN_REQ = (1<<6);		
+		
+		private:
+			SPIMMessage* objSPIMMessage;			
 	} cmdReqParam;	
+
+	enum en_SPIMaddrs
+	{
+		SPIM_ADDR_STM32									=0x1,		//контроллер STM32 целевого устройства (радимодул¤)
+		SPIM_ADDR_EXTDEV								=0x2		//внешнее управл¤ющее устройство (процессор NT1004, ѕ  или др.)
+	};
+
+	enum en_SPIMReqTypes
+	{
+		SPIM_REQTYPE_SINGLE							=0,			//одиночный синхронный запрос - запрос, ответ на который должен быть выслан ведомым
+																						//устройством однократно в момент получени¤ запроса
+		SPIM_REQTYPE_ASYNC							=1			//асинхронный запрос - запрос, в ответ на который параметр (например, RSSI) высылаетс¤
+																						//ведомым устройством в произвольный момент времени, при изменении его значени¤
+	};
 
 private:
 
-	//Максимальный размер тела сообщения, байт
-	static const uint8_t MAX_SIZE_OF_BODY = 128;
 	//Размер заголовка, байт
 	static const uint8_t SIZE_OF_HEADER = 3;
 	//Размер поля CRC, байт
@@ -129,22 +149,26 @@ private:
 	
 	//--------- Код рабочего режима ---------------
 	//Тип радиоканала
-	#define SHIFT_RADIOCHANTYPE_IN_OPMODECODE		(0)
-	#define MASK_RADIOCHANTYPE_IN_OPMODECODE		(3)
+	static const uint8_t SHIFT_RADIOCHANTYPE_IN_OPMODECODE = (0);
+	static const uint8_t MASK_RADIOCHANTYPE_IN_OPMODECODE = (3);
 	//Мощность сигнала передатчика
-	#define SHIFT_SIGNALPOWER_IN_OPMODECODE			(3)
-	#define MASK_SIGNALPOWER_IN_OPMODECODE			(1)
+	static const uint8_t SHIFT_SIGNALPOWER_IN_OPMODECODE = (3);
+	static const uint8_t MASK_SIGNALPOWER_IN_OPMODECODE = (1);
 	//Режим энергосбережения ARM
-	#define SHIFT_ARMPOWERMODE_IN_OPMODECODE		(4)
-	#define MASK_ARMPOWERMODE_IN_OPMODECODE			(1)
+	static const uint8_t SHIFT_ARMPOWERMODE_IN_OPMODECODE = (4);
+	static const uint8_t MASK_ARMPOWERMODE_IN_OPMODECODE = (1);
+	//Канальная скорость передачи данных
+	static const uint8_t SHIFT_RADIOBAUDRATE_IN_OPMODECODE = (5);
+	static const uint8_t MASK_RADIOBAUDRATE_IN_OPMODECODE = (7);
+
 
 	//------ Код настроек аудиопараметров ---------
 	//Усиление звукового выхода
-	#define SHIFT_OUTLEVEL_IN_AUDIOCODE					(0)
-	#define MASK_OUTLEVEL_IN_AUDIOCODE					(7)
+    static const uint8_t SHIFT_OUTLEVEL_IN_AUDIOCODE = (0);
+    static const uint8_t MASK_OUTLEVEL_IN_AUDIOCODE = (7);
 	//Усиление звукового входа
-	#define SHIFT_INLEVEL_IN_AUDIOCODE					(3)
-	#define MASK_INLEVEL_IN_AUDIOCODE						(7)
+    static const uint8_t SHIFT_INLEVEL_IN_AUDIOCODE = (3);
+    static const uint8_t MASK_INLEVEL_IN_AUDIOCODE = (7);
 
 	
 };
