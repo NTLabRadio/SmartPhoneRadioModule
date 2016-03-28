@@ -32,6 +32,7 @@
 	 
 #include <string.h>
 #include "DebugLog.h"
+#include "globals.h"
 	 
 	 
 //Возможные состояния механизма обработки UART-сообщений
@@ -43,6 +44,7 @@ typedef enum
 	 
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart);
 	 
 void UART_InitInterface(UART_HandleTypeDef *huart);
 void UART_DeInitInterface(UART_HandleTypeDef *huart);
@@ -55,6 +57,7 @@ void WaitNextByteFromUART(UART_HandleTypeDef *huart);
 uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePackData);
 
 void SendDataToExtDev(uint8_t* pData, uint16_t nSizeData);
+
 	 
 #ifdef __cplusplus
 }
