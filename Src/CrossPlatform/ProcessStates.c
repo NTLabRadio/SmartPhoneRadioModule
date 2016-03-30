@@ -38,9 +38,7 @@ uint16_t g_cntSendRadioPacks = 0;
 #ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
 uint16_t g_cntRcvdRadioPacks = 0;
 uint16_t g_cntRcvdPacksWithPayload = 0;
-uint16_t g_sizePayloadDataPack = 0;
 #endif
-
 
 // ------------------------------- Описание режима передачи речевого сигнала -------------------------------------
 //
@@ -185,6 +183,7 @@ void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize)
 
 void ProcessRadioState()
 {
+	//TODO Этот switch лучше заменить на 4 функции и вызывать функцию-обработчик, на которую показывает указатель текущей функции
 	switch(pobjRadioModule->GetRadioModuleState())
 	{		
 		case RADIOMODULE_STATE_TX_WAITING:
@@ -312,9 +311,6 @@ void ProcessRadioState()
 					}
 					else
 					{
-						#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
-						g_sizePayloadDataPack = nSizeOfRadioPayload;
-						#endif
 						//Пакет данных, принятый из радиоинтерфейса, копируем в очередь для внешнего устройства
 						QueDataToExtDev.PushFrame(pRadioPayloadData, nSizeOfRadioPayload);
 					}

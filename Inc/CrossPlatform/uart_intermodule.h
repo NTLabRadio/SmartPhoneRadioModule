@@ -14,6 +14,7 @@
 #ifndef __UART_INTERMODULE_H
 #define __UART_INTERMODULE_H
 
+#include "globals.h"
 #include "slipinterface.h"
 
 #ifdef __cplusplus
@@ -32,7 +33,6 @@
 	 
 #include <string.h>
 #include "DebugLog.h"
-#include "globals.h"
 	 
 	 
 //Возможные состояния механизма обработки UART-сообщений
@@ -57,7 +57,6 @@ void WaitNextByteFromUART(UART_HandleTypeDef *huart);
 uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePackData);
 
 void SendDataToExtDev(uint8_t* pData, uint16_t nSizeData);
-
 	 
 #ifdef __cplusplus
 }

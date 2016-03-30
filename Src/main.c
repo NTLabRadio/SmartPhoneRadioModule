@@ -189,10 +189,6 @@ int main(void)
 	LED1_ON();
 	#endif
 	
-	#ifdef DEBUG_TEST_ASYNC_REQ_PARAM
-	pobjRadioModule->SetAsyncReqMaskParam(0x60);
-	#endif	
-	
   while (1)
   {
 		//Если из UART приняты данные
