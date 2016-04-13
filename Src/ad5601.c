@@ -14,11 +14,13 @@ uint8_t AD5601_SetVCPForSky(SPI_HandleTypeDef *hspi)
 	
 	// CS опустить
 	AD5601_CSN_LOW();
+	
 	// отправить 2 байта по spi1
 	if (SPI_TransmitRecieve(hspi, pAD5601TxData, pAD5601RxData, 2)) 
 	{
-			return (0);
+		return (0);
 	}
+	
 	// CS поднять
 	AD5601_CSN_HIGH();
 

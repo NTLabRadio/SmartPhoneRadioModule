@@ -98,8 +98,10 @@ void RadioModuleInit(SPI_HandleTypeDef *hspiCMX7262, SPI_HandleTypeDef *hspiCC11
 	//Перевод CMX7262 в режим Idle
 	CMX7262_Idle(&g_CMX7262Struct);	
 	
+	#ifndef TEST_CMX7262
 	//Инициализация СС1120
 	CC1120_Init(&g_CC1120Struct, hspiCC1120);
+	#endif
 	
 	//После того, как все периферийные микросхемы радимодуля настроены, создаем объект
 	//для управления общими параметрами радиомодуля

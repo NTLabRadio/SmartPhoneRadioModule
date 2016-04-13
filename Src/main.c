@@ -108,7 +108,7 @@ int main(void)
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	HAL_Init();
 
   /* Configure the system clock */
   SystemClock_Config();
@@ -131,6 +131,9 @@ int main(void)
 	// Устанавливаем CS периферийных микросхем в высокое состояние
 	CC1120_CSN_HIGH();
 	CMX7262_CSN_HIGH();
+	#ifndef SMART_PROTOTYPE
+	AD5601_CSN_HIGH();
+	#endif
 	
 	// Pin Reset CC1120 устанавливаем в высокое состояние для перевода микросхемы в активное состояние
 	CC1120_RESET_HIGH();
@@ -156,11 +159,7 @@ int main(void)
 	//Делаем аппаратный сброс CC1120
 	CC1120_HardwareReset();
 	
-	#ifndef SMART_PROTOTYPE
-	//Выставляем смещение на ЦАП для Front-End
-	AD5601_SetVCPForSky(&hspi1);
-	#endif
-	
+
 	//Аппаратный сброс CMX7262
 	CMX7262_HardwareReset();
 	
@@ -176,6 +175,12 @@ int main(void)
 
 	//Делаем инициализацию радиомодуля для возможности управления его режимами и параметрами
 	RadioModuleInit(&hspi1,&hspi2);
+	
+	#ifndef SMART_PROTOTYPE
+	//Выставляем смещение на ЦАП для Front-End
+	AD5601_SetVCPForSky(&hspi1);
+	#endif
+
 
 	#ifdef TEST_CMX7262
 	CMX7262_TestMode();
@@ -507,7 +512,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin : SPI1_CS_AD5601_Pin */
   GPIO_InitStruct.Pin = SPI1_CS_AD5601_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(SPI1_CS_AD5601_GPIO_Port, &GPIO_InitStruct);
 
