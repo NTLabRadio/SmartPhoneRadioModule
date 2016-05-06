@@ -144,9 +144,9 @@ int main(void)
 	#ifndef SMART_PROTOTYPE
 	SKY_TR_LOW();
 	SKY_EN_HIGH();
-	SKY_BYP_HIGH(); // HIGH - режим Low Power, LOW - режим High Power
+	SKY_BYP_HIGH();
 	#endif
-	
+
 	//Запускаем таймеры для работы с периферией
 	StartPeriphTimers();
 
@@ -155,10 +155,10 @@ int main(void)
 
 	//Инициализируем все, что необходимо для протокола межмодульного обмена SPIM
 	SPIMInit();
-	
+
 	//Делаем аппаратный сброс CC1120
 	CC1120_HardwareReset();
-	
+
 
 	//Аппаратный сброс CMX7262
 	CMX7262_HardwareReset();
@@ -190,7 +190,8 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	#ifdef DEBUG_USE_LEDS
+	#ifdef USE_LEDS
+	//Индицируем успешную загрузку светодиодом
 	LED1_ON();
 	#endif
 	
@@ -206,7 +207,7 @@ int main(void)
 			UARTstate = UART_IDLE;
 		}
 		
-		ProcessAsyncReq();
+		ProcessAsyncData();
 		
 		//Обрабатываем состояние модуля CMX7262
 		ProcessCMX7262State();

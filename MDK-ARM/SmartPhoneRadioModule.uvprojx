@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F071xB,DEBUG_USE_LEDS, DEBUG_NO_CNT_SPIM_MSG_CONTROL, _DEBUG_CMX7262_NOISE_REDUCTION, _DEBUG_SET_SIGNALPOWER_HIGH_AS_DEFAULT, DEBUG_SEND_RECEIVER_STATS_WO_REQUEST, _TEST_TRANSMIT_PATTERN_TONE</Define>
+              <Define>USE_HAL_DRIVER,STM32F071xB,DEBUG_USE_LEDS, DEBUG_NO_CNT_SPIM_MSG_CONTROL, SEND_RECEIVER_STATS, SEND_RECEIVER_STATS_WO_REQUEST, DEBUG_CC1120_VARIABLE_PACKET_LENGTH</Define>
               <Undefine></Undefine>
               <IncludePath>../Inc; ../Inc/CrossPlatform; ../Drivers/STM32F0xx_HAL_Driver/Inc; ../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy; ../Drivers/CMSIS/Include; ../Drivers/CMSIS/Device/ST/STM32F0xx/Include</IncludePath>
             </VariousControls>

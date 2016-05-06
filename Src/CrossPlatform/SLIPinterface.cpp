@@ -94,6 +94,22 @@ uint8_t SLIPInterface::CheckForSLIPData(uint8_t nStreamDataByte, uint8_t* pPaylo
 		
 			if(nStreamDataByte==FEND)	//Если принят символ конца пакета
 			{
+				#ifdef DEBUG_SLIP_RESYNC_AFTER_ZERO_PACK
+				//Если приняли пакет, состоящий только из двух символов FEND,
+				//то считаем, что произошла рассинхронизация. Считаем 2й символ началом нового пакета
+				if(nPackSize==MIN_SIZE_OF_PACK)
+				{
+					//Начинаем накопление данных заново
+					nPackSize = 0;
+					pPackData = &BufForSLIPData[0];
+					
+					*pPackData++ = nStreamDataByte;
+					nPackSize++;
+					
+					break;
+				}
+				#endif
+				
 				//Изменяем состоние интерфейса на бездействие
 				InterfaceState = STATE_IDLE;				
 				

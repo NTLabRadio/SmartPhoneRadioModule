@@ -13,8 +13,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+#include "globals.h"
+#endif
 
-#define RADIO_BROADCAST_ADDR 	(0)
 
 class RadioMessage
 {
@@ -35,11 +37,14 @@ public:
 
 	uint8_t getHeader(uint8_t* pHeaderData);
 	uint8_t getBody(uint8_t* pBodyData);
+	uint8_t getMsg(uint8_t* pMsgData);
 
 	uint8_t getDstAddress();
 	uint8_t getSrcAddress();
 	uint8_t getDataType();
 	uint8_t getDataSize();
+	
+	uint8_t applyFEC();
 
 	typedef enum radioDataTypes_t
 	{
@@ -48,28 +53,33 @@ public:
 		RADIO_DATATYPE_UNCONF_DATA		=0x03
 	} radioDataTypes_t;
 
-		//Максимальный размер всего сообщения, байт
-	static const uint8_t MAX_SIZE_OF_MSG = 128;
+	//Максимальный размер всего сообщения, байт
+	static const uint8_t MAX_SIZE_OF_MSG = 255;
+
+private:
+
+	typedef struct{
+		#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+		uint8_t packLength;   	// длина пакета, байт
+		#endif		
+		uint8_t dstAddress;     // адрес получателя
+		uint8_t srcAddress;     // адрес источника
+		uint8_t dataType;     	// тип данных (речь / гарант. данные / негарант. данные)
+		uint8_t dataSize;     	// размер полезных данных в сообщении, байт
+		#ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+		uint8_t reserve;
+		#endif
+	} structRadioMsgHeader;	
 
 	//Размер заголовка, байт
-	static const uint8_t SIZE_OF_HEADER = 5;
-	
-private:
+	static const uint8_t SIZE_OF_HEADER = sizeof(structRadioMsgHeader);//5;
 
 	//Максимальный размер тела сообщения, байт
 	static const uint8_t MAX_SIZE_OF_BODY = (MAX_SIZE_OF_MSG - SIZE_OF_HEADER);
 
 	//Минимальный размер всего сообщения, байт
 	static const uint8_t MIN_SIZE_OF_MSG = SIZE_OF_HEADER;
-
-	typedef struct {
-		uint8_t dstAddress;     // адрес получателя
-		uint8_t srcAddress;     // адрес источника
-		uint8_t dataType;     	// тип данных (речь / гарант. данные / негарант. данные)
-		uint8_t dataSize;     	// размер полезных данных в сообщении, байт
-		uint8_t reserve;
-	} structRadioMsgHeader;
-
+	
 	uint8_t RadioMsgData[MAX_SIZE_OF_MSG];
 	uint8_t* RadioHeaderData;
 	uint8_t* RadioBodyData;
