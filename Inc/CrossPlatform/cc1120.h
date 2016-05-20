@@ -166,9 +166,9 @@ typedef struct
 //Если в регистр AGC_GAIN_ADJUST записать нулевое значение, то значения RSSI, которые выдает приемник, будут отличаться 
 //от реальных значений уровня ~на 102 дБ. Но при записи значения 102 в этот регистр приемник выдает неадекватные значения
 //RSSI при низких уровнях (<-115дБм). Поэтому лучше вычитать это значение "вручную"
-#define CC1120_AGC_GAIN_ADJUST	(CC1120_RSSI_OFFSET}
+#define CC1120_AGC_GAIN_ADJUST	(CC1120_RSSI_OFFSET)
 #else
-#define CC1120_AGC_GAIN_ADJUST	(0x00)
+#define CC1120_AGC_GAIN_ADJUST	(0)
 #endif
 
 
@@ -224,9 +224,9 @@ static const CC1120regSetting_t CC1120_Config_4800[]= {
 {0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},	//PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
 {0x002D,     0x7E},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
 #ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
-{0x002E,     RADIOPACK_MODE4800_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002E,     RADIOPACK_DEFAULT_SIZE},     	//PKT_LEN            PACKET LENGTH CONFIGURATION
 #else
-{0x002E,     MAX_RADIOPACK_SIZE},     				//PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002E,     RADIOPACK_MAX_SIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
 #endif
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
@@ -293,9 +293,16 @@ static const CC1120regSetting_t CC1120_Config_9600[]= {
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
+#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+{0x0028,     0x20},     //PKT_CFG0           PACKET CONFIGURATION REG. 0
+#endif
 {0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},	//PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
 {0x002D,     0x7D},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
-{0x002E,     RADIOPACK_MODE9600_EXTSIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
+#ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+{0x002E,     RADIOPACK_DEFAULT_SIZE},     	//PKT_LEN            PACKET LENGTH CONFIGURATION
+#else
+{0x002E,     RADIOPACK_MAX_SIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
+#endif
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -362,8 +369,15 @@ static const CC1120regSetting_t CC1120_Config_19200[]= {
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
+#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+{0x0028,     0x20},     //PKT_CFG0           PACKET CONFIGURATION REG. 0
+#endif
 {0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},	//PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
-{0x002E,     RADIOPACK_MODE19200_EXTSIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
+#ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+{0x002E,     RADIOPACK_DEFAULT_SIZE},     	//PKT_LEN            PACKET LENGTH CONFIGURATION
+#else
+{0x002E,     RADIOPACK_MAX_SIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
+#endif
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -431,8 +445,15 @@ static const CC1120regSetting_t CC1120_Config_48000[]= {
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
+#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+{0x0028,     0x20},     //PKT_CFG0           PACKET CONFIGURATION REG. 0
+#endif
 {0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},	//PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
-{0x002E,     RADIOPACK_MODE48000_EXTSIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
+#ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+{0x002E,     RADIOPACK_DEFAULT_SIZE},     	//PKT_LEN            PACKET LENGTH CONFIGURATION
+#else
+{0x002E,     RADIOPACK_MAX_SIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
+#endif
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -493,13 +514,13 @@ uint8_t CC1120_SFSTXON_set (SPI_HandleTypeDef *hspi);
 
 uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi);
-uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi);
+volatile uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi);
 
 uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum);
 uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum);
 
 uint8_t CC1120_FreqWrite(SPI_HandleTypeDef *hspi, uint8_t *freq);
-uint8_t *CC1120_FreqRead(SPI_HandleTypeDef *hspi);
+volatile uint8_t *CC1120_FreqRead(SPI_HandleTypeDef *hspi);
 
 uint8_t CC1120_PowerAmpWrite(SPI_HandleTypeDef *hspi, uint8_t nPAPowRamp);
 

@@ -2,11 +2,6 @@
 
 SPI_HandleTypeDef *hspi_CMX7262 = NULL;
 
-uint8_t nCMX7262TxNumBytes = 0;
-uint8_t pCMX7262TxData[256];
-uint8_t nCMX7262RxNumBytes = 0;
-uint8_t pCMX7262RxData[256];
-
 
 uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 {
@@ -88,11 +83,23 @@ uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface )
 					{
 						start_code = pFI->db1_ptr;
 						length = pFI->db1_len;
+						#ifndef SMART_PROTOTYPE
+						//TODO Читаем из EEPROM область DataBlock1 размера length
+						//Копируем ее в память ARM по адресу CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
+						//pData = CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
+						//pFI->db1_start_address = CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
+						#endif
 					}
 					else if (pData==pFI->db2_start_address)
 					{
 						start_code =  pFI->db2_ptr;
 						length = pFI->db2_len;
+						#ifndef SMART_PROTOTYPE
+						//TODO Читаем из EEPROM область DataBlock1 размера length
+						//Копируем ее в память ARM по адресу CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
+						//pData = CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
+						//pFI->db1_start_address = CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
+						#endif
 					}
 					else if (pData==LOAD_FI_END)
 					{
@@ -223,8 +230,8 @@ uint16_t  CMX7262_Init(CMX7262_TypeDef *pCmx7262, SPI_HandleTypeDef *hspi)
 {
 	hspi_CMX7262 = hspi;	
 	
-	pCmx7262->FI = (cmxFI_TypeDef*)START_7262;								// Initialise to the FI load definitions above
-	pCmx7262->pFlash = (DMR_Flash_TypeDef *)ADDR_FLASH_PAGE;
+	pCmx7262->FI = (cmxFI_TypeDef*)CMX7262_IMAGE_ADDR;								// Initialise to the FI load definitions above
+	pCmx7262->pFlash = (DMR_Flash_TypeDef *)RADIOMODULE_SETTINGS_ADDR;
 	pCmx7262->uInterface = CBUS_INTERFACE_CMX7262;
 	pCmx7262->uMode = CMX7262_INIT_MODE;
 	pCmx7262->uPacketSize = 0;							// How many bytes we read and write.
@@ -498,7 +505,7 @@ void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
 	
 	//Код частоты NCO
 	//Расчет кода частоты - п.8.1.9 Frequency Control документа D/7262_FI-1.x/4 August 2013 (datasheet)
-	uData = floor((nFreq * UINT16_MAX)/CMX7262_FREQ_SAMPLING);	
+	uData = floor(((double)nFreq * UINT16_MAX)/CMX7262_FREQ_SAMPLING);
 	CBUS_Write16(FREQ_CONTROL,&uData,1,pCmx7262->uInterface);
 	
 	// The test mode is started, there will be a delay before we are requested to service it..

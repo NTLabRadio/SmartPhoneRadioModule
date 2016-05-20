@@ -39,6 +39,7 @@
 #include "globals.h"
 #include "cc1120.h"
 #include "cmx7262.h"
+#include "eeprom.h"
 #include "mathfuncs.h"
 #include "ProcessStates.h"
 #include "RadioModule.h"
@@ -72,6 +73,7 @@ extern UART_InitTypeDef DefaultUARTParams;
 extern en_UARTstates UARTstate;
 
 #define DMA_UART_PRIORITY (2)
+
 
 /* USER CODE END PV */
 
@@ -153,29 +155,33 @@ int main(void)
 	// Инициализируем работу по UART
 	UART_InitInterface(&huart1);
 
-	//Инициализируем все, что необходимо для протокола межмодульного обмена SPIM
-	SPIMInit();
-
-	//Делаем аппаратный сброс CC1120
+	//Аппаратный сброс CC1120
 	CC1120_HardwareReset();
-
 
 	//Аппаратный сброс CMX7262
 	CMX7262_HardwareReset();
-	
+
+	#ifdef DEBUG_TEST_EEPROM
+	//Проверяем чтение/запись c/в EEPROM
+	volatile uint8_t nMemStatus = TestEEPROM(&hi2c1);
+	#endif
+
+	#ifdef SAVE_CMX7262_IMAGE_TO_EEPROM
+	uint8_t *pImageData = (uint8_t *)CMX7262_IMAGE_ADDR;
+	const uint32_t nSizeData = MAX_SIZE_OF_CMX7262_IMAGE;
+	WriteToEEPROM(&hi2c1, 0, pImageData, nSizeData);
+	#endif
+
 
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулей
-	//Проверяем работоспособность
-	CC1120_CheckModule(&hspi2);
-	
-	//Проверяем работоспособность
-	CMX7262_CheckModule(&hspi1);
+	volatile uint8_t nCC1120Status = CC1120_CheckModule(&hspi2);
+	volatile uint8_t nCMX7262Status = CMX7262_CheckModule(&hspi1);
 	#endif
 
 
 	//Делаем инициализацию радиомодуля для возможности управления его режимами и параметрами
 	RadioModuleInit(&hspi1,&hspi2);
-	
+
 	#ifndef SMART_PROTOTYPE
 	//Выставляем смещение на ЦАП для Front-End
 	AD5601_SetVCPForSky(&hspi1);
@@ -202,24 +208,24 @@ int main(void)
 		{
 			//Обрабатываем их
 			ProcessDataFromExtDev();
-			
+
 			//Указываем, что данные обработаны
 			UARTstate = UART_IDLE;
 		}
-		
+
 		ProcessAsyncData();
-		
+
 		//Обрабатываем состояние модуля CMX7262
 		ProcessCMX7262State();
-		
+
 		#ifndef TEST_CMX7262
 		//Обрабатываем тангенту
 		ProcessPTTState();
-		
+
 		//Обрабатываем состояние приемопередатчика
 		ProcessRadioState();
 		#endif
-	  
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -273,7 +279,7 @@ void MX_I2C1_Init(void)
 
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = 0x20303E5D;
-  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.OwnAddress1 = 1;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLED;
   hi2c1.Init.OwnAddress2 = 0;

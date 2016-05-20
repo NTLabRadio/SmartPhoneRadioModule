@@ -132,9 +132,11 @@ public:
 	
 	uint8_t GetAsyncReqMaskParam();
 	uint8_t SetAsyncReqMaskParam(uint8_t mask);
-
 	
 	uint8_t GetMaskOfChangedParams();
+	
+	uint8_t IsAsyncReqReceiverStats();
+	uint8_t SetAsyncReqReceiverStats(uint8_t nCmd);
 
 	uint8_t isTxMode();
 	uint8_t isRxMode();
@@ -186,6 +188,10 @@ private:
 	
 	uint8_t AsyncReqMaskParam;
 	uint8_t MaskOfChangedParams;
+	
+	//ѕризнак того, что от внешнего устройства был прин€т асинхронный запрос статистики приема (RSSI,BER)
+	//=0 - статистика приема не нужна внешнему устройству, =1 - нужна
+	uint8_t AsyncReqReceiverStats;
 
 	struct RadioModuleSettings
 	{
@@ -213,8 +219,15 @@ private:
 	#endif
 	static const uint8_t DEFAULT_AUDIO_OUT_GAIN = 7;
 
-	static const uint16_t DEFAULT_TX_FREQ_CHAN	= 960;
-	static const uint16_t DEFAULT_RX_FREQ_CHAN	= 960;
+	#ifndef DEFAULT_RADIOFREQ_434MHZ
+	static const uint16_t DEFAULT_TX_FREQ_CHAN	= 640;	//426 ћ√ц	
+	static const uint16_t DEFAULT_RX_FREQ_CHAN	= 640;	//426 ћ√ц
+	#else
+	static const uint16_t DEFAULT_TX_FREQ_CHAN	= 960;	//434 ћ√ц	
+	static const uint16_t DEFAULT_RX_FREQ_CHAN	= 960;	//434 ћ√ц
+	#endif
+	
+	static const uint16_t UNKNOWN_FREQ_CHAN	= 0xFFFF;
 	
 	static const uint8_t DEFAULT_RADIO_ADDRESS	= 1;
 	

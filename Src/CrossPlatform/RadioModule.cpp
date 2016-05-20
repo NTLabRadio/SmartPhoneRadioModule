@@ -45,7 +45,12 @@ RadioModule::RadioModule()
 	SetRadioChanState(RADIOCHAN_STATE_IDLE);
 	
 	//Тестовый режим отключен
+	#ifndef DEBUG_TESTMODE_AS_DEFAULT
 	SetTestMode(false);
+	#else
+	SetTestMode(true);
+	#endif
+	
 	//Паттерн по умолчанию - "Тон"
 	SetTestPattern(SYMBOL_PATTERN_TONE);
 	
@@ -53,6 +58,8 @@ RadioModule::RadioModule()
 	SetRadioAddress(DEFAULT_RADIO_ADDRESS);
 	
 	SetAsyncReqMaskParam(0);
+	
+	SetAsyncReqReceiverStats(false);
 }
 
 
@@ -349,7 +356,7 @@ void RadioModule::ApplyRadioConfig()
 	
 	CC1120_SetConfig(g_CC1120Struct.hSPI, CC1120_Config, nSizeConfig);
 	//Вместе с конфигурацией изменилась рабочая частота (на частоту, заданную в конфигурации по умолчанию)
-	NoCurFreqChan = DEFAULT_RX_FREQ_CHAN;
+	NoCurFreqChan = UNKNOWN_FREQ_CHAN;
 	
 	//Возвращаем частоту, установленную пользователем
 	ApplyRadioFreq();
@@ -469,4 +476,20 @@ void RadioModule::ApplyRadioSignalPower()
 		SKY_BYP_LOW();
 	}
 	#endif
+}
+
+
+uint8_t RadioModule::IsAsyncReqReceiverStats()
+{
+	return(AsyncReqReceiverStats);
+}
+
+uint8_t RadioModule::SetAsyncReqReceiverStats(uint8_t nCmd)
+{
+	if(nCmd)
+		AsyncReqReceiverStats = true;
+	else
+		AsyncReqReceiverStats = false;
+	
+	return(0);
 }
