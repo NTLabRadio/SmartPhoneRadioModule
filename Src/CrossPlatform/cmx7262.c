@@ -34,13 +34,17 @@ uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 
 
 //Bootload of CMX7262
-uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface )
+uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface)
 {
 	uint16_t	*pData;
 	uint16_t 	start_code;
 	uint16_t 	length;
 	uint16_t	data;
 	uint16_t	state;
+	
+	#ifdef CMX7262_IMAGE_IN_EEPROM
+	uint16_t nDataWord;
+	#endif
 
 	uint16_t	uTxFIFOCount;
         
@@ -83,23 +87,11 @@ uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface )
 					{
 						start_code = pFI->db1_ptr;
 						length = pFI->db1_len;
-						#ifndef SMART_PROTOTYPE
-						//TODO Читаем из EEPROM область DataBlock1 размера length
-						//Копируем ее в память ARM по адресу CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
-						//pData = CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
-						//pFI->db1_start_address = CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
-						#endif
 					}
 					else if (pData==pFI->db2_start_address)
 					{
 						start_code =  pFI->db2_ptr;
 						length = pFI->db2_len;
-						#ifndef SMART_PROTOTYPE
-						//TODO Читаем из EEPROM область DataBlock1 размера length
-						//Копируем ее в память ARM по адресу CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
-						//pData = CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
-						//pFI->db1_start_address = CMX7262_IMAGE_DB_ADDRESS_IN_ARM_MEM
-						#endif
 					}
 					else if (pData==LOAD_FI_END)
 					{
@@ -129,7 +121,7 @@ uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface )
 
 						ClearHighPrecisionCounter();
 						while (ReadHighPrecisionCounter()<1e6)
-						{                                                  
+						{
 							CBUS_Read16 (0x7E,&data,1,uInterface);
 							if (data & 0x4000 && (pFI->type==CMX7262FI))
 							{
@@ -172,7 +164,15 @@ uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface )
 							return 0;
 						uTxFIFOCount = 0;
 					}
+					
+					#ifdef CMX7262_IMAGE_IN_EEPROM
+					ReadWordFromEEPROM((uint32_t)pData,&nDataWord);
+					pData++;
+					CBUS_Write16(0x49,&nDataWord,1,uInterface);
+					#else
 					CBUS_Write16(0x49,pData++,1,uInterface);
+					#endif
+
 					length--;
 					uTxFIFOCount++;
 
@@ -230,7 +230,15 @@ uint16_t  CMX7262_Init(CMX7262_TypeDef *pCmx7262, SPI_HandleTypeDef *hspi)
 {
 	hspi_CMX7262 = hspi;	
 	
+	#ifdef CMX7262_IMAGE_IN_EEPROM
+	//Читаем из EEPROM структуру образа CMX7262
+	cmxFI_TypeDef CMX7262ImageStruct;	
+	ReadCMXImageStruct(&CMX7262ImageStruct);
+	pCmx7262->FI = &CMX7262ImageStruct;
+	#else
 	pCmx7262->FI = (cmxFI_TypeDef*)CMX7262_IMAGE_ADDR;								// Initialise to the FI load definitions above
+	#endif
+	
 	pCmx7262->pFlash = (DMR_Flash_TypeDef *)RADIOMODULE_SETTINGS_ADDR;
 	pCmx7262->uInterface = CBUS_INTERFACE_CMX7262;
 	pCmx7262->uMode = CMX7262_INIT_MODE;
@@ -505,7 +513,7 @@ void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
 	
 	//Код частоты NCO
 	//Расчет кода частоты - п.8.1.9 Frequency Control документа D/7262_FI-1.x/4 August 2013 (datasheet)
-	uData = floor(((double)nFreq * UINT16_MAX)/CMX7262_FREQ_SAMPLING);
+	uData = floor(((double)nFreq * USHRT_MAX)/CMX7262_FREQ_SAMPLING);
 	CBUS_Write16(FREQ_CONTROL,&uData,1,pCmx7262->uInterface);
 	
 	// The test mode is started, there will be a delay before we are requested to service it..

@@ -14,9 +14,6 @@
 #ifndef __CMX7262_H
 #define __CMX7262_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif
 
 #include <math.h>       /* для floor() */
 
@@ -33,7 +30,15 @@
 #include "globals.h"
 #include "spi_periphery.h"
 #include "timers.h"
-	 
+
+
+#include "StoreCMXImage.h"
+
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 
 #define CBUS_INTERFACE_CMX7262 (0)
  
@@ -50,7 +55,7 @@
 #define CMX7262_AUDIOFRAME_SIZE_SAMPLES	(160)	 
 	 
 #ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
-//Перед тем, как перервести CMX7262 в режим EncDec, ожидаем накопления некоторого числа звуковых фреймов от UART
+//Перед тем, как перевести CMX7262 в режим EncDec, ожидаем накопления некоторого числа звуковых фреймов от UART
 //Число накапливаемых фреймов:
 	#define CMX7262_NUM_AUDIO_FRAMES_FROM_UART_TO_START_TESTMODE (10)
 #endif	 

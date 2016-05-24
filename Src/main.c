@@ -44,6 +44,7 @@
 #include "ProcessStates.h"
 #include "RadioModule.h"
 #include "SPIMLogic.h"
+#include "StoreCMXImage.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -161,26 +162,25 @@ int main(void)
 	//Аппаратный сброс CMX7262
 	CMX7262_HardwareReset();
 
-	#ifdef DEBUG_TEST_EEPROM
-	//Проверяем чтение/запись c/в EEPROM
-	volatile uint8_t nMemStatus = TestEEPROM(&hi2c1);
+	#ifdef DEBUG_CHECK_EEPROM_ON_STARTUP
+	//Проверка работоспособности (чтение/запись) EEPROM
+	volatile uint8_t nEEPROMStatus = TestEEPROM(&hi2c1);
 	#endif
 
-	#ifdef SAVE_CMX7262_IMAGE_TO_EEPROM
-	uint8_t *pImageData = (uint8_t *)CMX7262_IMAGE_ADDR;
-	const uint32_t nSizeData = MAX_SIZE_OF_CMX7262_IMAGE;
-	WriteToEEPROM(&hi2c1, 0, pImageData, nSizeData);
-	#endif
-
-
-	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулей
+	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	
+	//Проверка работоспособности периферийных модулей
 	volatile uint8_t nCC1120Status = CC1120_CheckModule(&hspi2);
 	volatile uint8_t nCMX7262Status = CMX7262_CheckModule(&hspi1);
 	#endif
 
+	#ifdef SAVE_CMX7262_IMAGE_TO_EEPROM
+	SaveCMX7262Image();
+	return;
+	#endif
 
 	//Делаем инициализацию радиомодуля для возможности управления его режимами и параметрами
 	RadioModuleInit(&hspi1,&hspi2);
+
 
 	#ifndef SMART_PROTOTYPE
 	//Выставляем смещение на ЦАП для Front-End
