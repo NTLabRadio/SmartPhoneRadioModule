@@ -20,7 +20,7 @@
 
 #define CMX7262_IMAGE_ADDR_IN_EEPROM	((uint32_t)0x00000000) 
 
-void SaveCMX7262Image(void);
+void SaveCMX7262Image();
 void ReadCMXImageStruct(void *pStructData);
 void ReadPageFromEEPROM(uint16_t noPage, uint16_t* pData);
 

@@ -175,7 +175,7 @@ int main(void)
 
 	#ifdef SAVE_CMX7262_IMAGE_TO_EEPROM
 	SaveCMX7262Image();
-	return;
+	return 0;
 	#endif
 
 	//Делаем инициализацию радиомодуля для возможности управления его режимами и параметрами

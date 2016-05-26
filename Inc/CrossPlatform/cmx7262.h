@@ -31,8 +31,9 @@
 #include "spi_periphery.h"
 #include "timers.h"
 
-
+#ifdef CMX7262_IMAGE_IN_EEPROM
 #include "StoreCMXImage.h"
+#endif
 
 
 #ifdef __cplusplus
