@@ -442,6 +442,14 @@ uint8_t SPIMMessage::CmdReqParam::isTxFreqReq()
 		return(0);		
 }
 
+uint8_t SPIMMessage::CmdReqParam::isFECModeReq()
+{
+	if(MaskReqParam() & FECMODE_MASK_IN_REQ)
+		return(1);
+	else
+		return(0);			
+}
+
 uint8_t SPIMMessage::CmdReqParam::isRSSIReq()
 {
 	if(MaskReqParam() & RSSI_MASK_IN_REQ)

@@ -13,7 +13,7 @@ RadioModule::RadioModule()
 	//По умолчанию устанавливаем режим обработки голоса, поскольку этот режим является универсальным
 	//(в этом режиме данные также обрабатываются)	
 	SetRadioChanType(RADIOCHAN_TYPE_VOICE);
-	
+
 	//Режим мощности ВЧ сигнала
 	#ifndef DEBUG_SET_SIGNALPOWER_HIGH_AS_DEFAULT
 	SetRadioSignalPower(RADIO_SIGNALPOWER_LOW);
@@ -36,8 +36,14 @@ RadioModule::RadioModule()
 	//Настройки аудио
 	SetAudioInLevel(DEFAULT_AUDIO_IN_GAIN);
 	SetAudioOutLevel(DEFAULT_AUDIO_OUT_GAIN);
-	#endif
 	
+	//Режим помехозащиты
+	SetFECMode(ONLY_TWELP);
+	#endif
+
+	//Тип передаваемого трафика
+	SetTxTrafficType(TRAFFIC_TYPE_IDLE);
+
 	//Уровень приема
 	RSSILevel = 0;
 
@@ -85,10 +91,8 @@ void RadioModule::SwitchToIdleState()
 	SetRadioModuleState(RADIOMODULE_STATE_IDLE);
 	
 	SetRadioChanState(RADIOCHAN_STATE_IDLE);
-	
-	//По умолчанию устанавливаем режим обработки голоса, поскольку этот режим является универсальным
-	//(в этом режиме данные также обрабатываются)
-	RadioChanType = RADIOCHAN_TYPE_VOICE;	
+
+	SetTxTrafficType(TRAFFIC_TYPE_IDLE);
 }
 
 
@@ -118,6 +122,17 @@ uint8_t RadioModule::SetRadioChanType(uint8_t chanType)
 		return(1);
 }
 
+uint8_t RadioModule::SetTxTrafficType(uint8_t trafficType)
+{
+	if(trafficType<NUM_TRAFFIC_TYPES)
+	{
+		TxTrafficType	=	(en_TrafficTypes)trafficType;
+		return(0);
+	}
+	else
+		return(1);
+}
+
 uint8_t RadioModule::SetTestPattern(uint8_t noPattern)
 {
 	if(noPattern<NUM_OF_SYMBOL_PATTERNS)
@@ -137,6 +152,11 @@ uint8_t RadioModule::GetTestPattern()
 uint8_t RadioModule::GetRadioChanType()
 {
 	return(RadioChanType);
+}
+
+uint8_t RadioModule::GetTxTrafficType()
+{
+	return(TxTrafficType);
 }
 
 uint8_t RadioModule::SetRadioSignalPower(uint8_t signalPower)
@@ -242,6 +262,23 @@ uint8_t RadioModule::SetAudioOutLevel(uint8_t audioLevel)
 uint8_t RadioModule::GetAudioOutLevel()
 {
 	return(AudioOutLevel);
+}
+
+uint8_t RadioModule::SetFECMode(uint8_t nFECCode)
+{
+	if(nFECCode<NUM_FEC_MODES)
+	{
+		FECMode = (en_FECModes)nFECCode;
+
+		return(0);
+	}
+	else
+		return(1);	
+}
+
+uint8_t RadioModule::GetFECMode()
+{
+	return(FECMode);
 }
 
 uint8_t RadioModule::GetRSSILevel()
@@ -502,4 +539,9 @@ uint8_t RadioModule::SetAsyncReqReceiverStats(uint8_t nCmd)
 		AsyncReqReceiverStats = false;
 	
 	return(0);
+}
+
+uint8_t RadioModule::isFECEnabled()
+{
+	return(FECMode==TRELLIS_3_4_AND_TWELP);
 }
